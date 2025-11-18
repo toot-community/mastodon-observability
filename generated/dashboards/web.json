@@ -1,0 +1,986 @@
+{
+   "editable": true,
+   "links": [
+      {
+         "asDropdown": true,
+         "includeVars": true,
+         "tags": [
+            "mastodon"
+         ],
+         "title": "Mastodon dashboards",
+         "type": "dashboards"
+      }
+   ],
+   "panels": [
+      {
+         "description": "User-facing success ratio over the last 5m; 1.0 means no 5xx.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_availability:availability_5m{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Availability (5m)",
+         "type": "stat"
+      },
+      {
+         "description": "Long-window availability to gauge SLO burn over the period.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 4,
+            "y": 0
+         },
+         "id": 2,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_availability:availability_30d{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Availability (30d)",
+         "type": "stat"
+      },
+      {
+         "description": "Ingress-derived APDEX (100/500ms) excluding streaming hosts; reflects user experience.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 8,
+            "y": 0
+         },
+         "id": 3,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:edge_apdex:overall{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "APDEX (edge)",
+         "type": "stat"
+      },
+      {
+         "description": "User-facing response time percentiles from app summaries (diagnostic).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+         },
+         "id": 4,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_latency:p50_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p50",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_latency:p90_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p90",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_latency:p99_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p99",
+               "refId": "C"
+            }
+         ],
+         "title": "Latency percentiles",
+         "type": "timeseries"
+      },
+      {
+         "description": "Edge APDEX by ingress/host to spot latency regressions users actually feel.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 5,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:edge_apdex:overall{namespace=\"$namespace\"}",
+               "legendFormat": "overall",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:edge_apdex:app{namespace=\"$namespace\",ingress!=\"\"}",
+               "legendFormat": "{{ingress}} app",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:edge_apdex:static{namespace=\"$namespace\",ingress!=\"\"}",
+               "legendFormat": "{{ingress}} static",
+               "refId": "C"
+            }
+         ],
+         "title": "APDEX (edge) over time",
+         "type": "timeseries"
+      },
+      {
+         "description": "Avg latency components for user-facing requests; use to isolate slow layers.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 6,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_latency:sql_avg_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "SQL",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_latency:redis_avg_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "Redis",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_latency:queue_avg_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "Queue",
+               "refId": "C"
+            },
+            {
+               "expr": "mastodon:web_latency:app_avg_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "App only",
+               "refId": "D"
+            }
+         ],
+         "title": "SQL vs app latency",
+         "type": "timeseries"
+      },
+      {
+         "description": "User-facing 5xx per second (matching availability SLO scope).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 7,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_requests_user:errors5m{namespace=\"$namespace\"}",
+               "legendFormat": "errors/sec",
+               "refId": "A"
+            }
+         ],
+         "title": "5xx error rate",
+         "type": "timeseries"
+      },
+      {
+         "description": "Traffic mix split by controller/action regexes; validates classification.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 8,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_requests_user:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "user-facing",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_requests_federation:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "federation",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_requests_uncategorized:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "other",
+               "refId": "C"
+            }
+         ],
+         "title": "Request classification",
+         "type": "timeseries"
+      },
+      {
+         "description": "Total CPU for web pods; compare to requests/limits elsewhere for headroom.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "cores"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 20
+         },
+         "id": 9,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"mastodon-web.*\",container!=\"\"}[5m]))",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "CPU usage (total)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Total memory for web pods; track against OOM/limits.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "bytes"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 20
+         },
+         "id": 10,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"mastodon-web.*\",container!=\"\"})",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "Memory usage (total)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Per-pod thread usage vs capacity/max; rising to capacity signals saturation.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 28
+         },
+         "id": 11,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "ruby_puma_running_threads{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} running",
+               "refId": "A"
+            },
+            {
+               "expr": "ruby_puma_thread_pool_capacity{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} capacity",
+               "refId": "B"
+            },
+            {
+               "expr": "ruby_puma_max_threads{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} max",
+               "refId": "C"
+            }
+         ],
+         "title": "Puma capacity",
+         "type": "timeseries"
+      },
+      {
+         "description": "Queued requests waiting for a free Puma thread; should stay near zero.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 28
+         },
+         "id": 12,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "ruby_puma_request_backlog{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} backlog",
+               "refId": "A"
+            }
+         ],
+         "title": "Puma backlog",
+         "type": "timeseries"
+      },
+      {
+         "description": "Busy/size per pod for DB pool; near 1 indicates connection starvation.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 36
+         },
+         "id": 13,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace, pod) (ruby_active_record_connection_pool_busy{namespace=\"$namespace\"}) / clamp_min(sum by (namespace, pod) (ruby_active_record_connection_pool_size{namespace=\"$namespace\"}), 1)",
+               "legendFormat": "{{pod}} busy/size",
+               "refId": "A"
+            }
+         ],
+         "title": "DB pool utilization",
+         "type": "timeseries"
+      },
+      {
+         "description": "Requests waiting for a DB connection; any sustained >0 implies bottleneck.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 36
+         },
+         "id": 14,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "ruby_active_record_connection_pool_waiting{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} waiting",
+               "refId": "A"
+            }
+         ],
+         "title": "DB pool waiters",
+         "type": "timeseries"
+      },
+      {
+         "description": "Highest request rates by controller/action over 5m to spot noisy routes.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 44
+         },
+         "id": 15,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(5, sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace=\"$namespace\"}[5m])))",
+               "legendFormat": "{{controller}}#{{action}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Top controllers by request rate",
+         "type": "timeseries"
+      },
+      {
+         "description": "Slowest controllers by mean latency; target optimizations here first.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 44
+         },
+         "id": 16,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(5, sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_sum{namespace=\"$namespace\"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_count{namespace=\"$namespace\"}[5m])), 1e-6))",
+               "legendFormat": "{{controller}}#{{action}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Top controllers by avg latency",
+         "type": "timeseries"
+      },
+      {
+         "description": "Live vs free heap slots per pod; persistent growth hints at leaks.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 52
+         },
+         "id": 17,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "ruby_heap_live_slots{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} live",
+               "refId": "A"
+            },
+            {
+               "expr": "ruby_heap_free_slots{namespace=\"$namespace\",pod!=\"\"}",
+               "legendFormat": "{{pod}} free",
+               "refId": "B"
+            }
+         ],
+         "title": "Ruby heap slots",
+         "type": "timeseries"
+      },
+      {
+         "description": "GC activity rates; spikes can explain latency or CPU jumps.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 52
+         },
+         "id": 18,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "rate(ruby_major_gc_ops_total{namespace=\"$namespace\"}[5m])",
+               "legendFormat": "major/s",
+               "refId": "A"
+            },
+            {
+               "expr": "rate(ruby_minor_gc_ops_total{namespace=\"$namespace\"}[5m])",
+               "legendFormat": "minor/s",
+               "refId": "B"
+            },
+            {
+               "expr": "rate(ruby_marking_time{namespace=\"$namespace\"}[5m])",
+               "legendFormat": "marking time/s",
+               "refId": "C"
+            },
+            {
+               "expr": "rate(ruby_sweeping_time{namespace=\"$namespace\"}[5m])",
+               "legendFormat": "sweeping time/s",
+               "refId": "D"
+            }
+         ],
+         "title": "GC operations rate",
+         "type": "timeseries"
+      },
+      {
+         "description": "Exporter self-check; should be 1.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 0,
+            "y": 60
+         },
+         "id": 19,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "min by (namespace) (ruby_collector_working{namespace=\"$namespace\"})",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Exporter healthy",
+         "type": "stat"
+      },
+      {
+         "description": "Bad metrics processed in last hour (summed across web pods); rising counts imply exporter issues.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 4,
+            "y": 60
+         },
+         "id": 20,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (increase(ruby_collector_bad_metrics_total{namespace=\"$namespace\"}[1h]))",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Bad metrics seen",
+         "type": "stat"
+      },
+      {
+         "datasource": "VictoriaLogs",
+         "gridPos": {
+            "h": 16,
+            "w": 24,
+            "x": 0,
+            "y": 65
+         },
+         "id": 21,
+         "options": {
+            "derivedFields": [ ],
+            "limit": 100,
+            "query": {
+               "expr": "",
+               "intervals": [ ],
+               "query": "",
+               "refId": "A"
+            },
+            "queryType": "logs",
+            "timeFrom": "now-30m",
+            "timeTo": "now"
+         },
+         "targets": [
+            {
+               "datasource": "VictoriaLogs",
+               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_name:~\"^mastodon-web\" and _msg:~$web_log_search",
+               "queryType": "logs",
+               "refId": "A"
+            }
+         ],
+         "title": "Web logs (last 30m)",
+         "type": "logs"
+      }
+   ],
+   "refresh": "30s",
+   "schemaVersion": 39,
+   "tags": [
+      "mastodon"
+   ],
+   "templating": {
+      "list": [
+         {
+            "current": {
+               "text": "toot-community",
+               "value": "toot-community"
+            },
+            "definition": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "includeAll": false,
+            "label": "Namespace",
+            "multi": false,
+            "name": "namespace",
+            "query": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "refresh": 1,
+            "sort": 1,
+            "type": "query"
+         },
+         {
+            "current": {
+               "text": ".*",
+               "value": ".*"
+            },
+            "label": "Web log search",
+            "name": "web_log_search",
+            "query": ".*",
+            "type": "textbox"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-12h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "Mastodon Web",
+   "uid": "mastodon-web",
+   "version": 1
+}

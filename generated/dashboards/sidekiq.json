@@ -1,0 +1,469 @@
+{
+   "editable": true,
+   "links": [
+      {
+         "asDropdown": true,
+         "includeVars": true,
+         "tags": [
+            "mastodon"
+         ],
+         "title": "Mastodon dashboards",
+         "type": "dashboards"
+      }
+   ],
+   "panels": [
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:sidekiq_dead_growth_ratio_1h{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Dead queue growth ratio (1h)",
+         "type": "stat"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 4,
+            "y": 0
+         },
+         "id": 2,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:sidekiq_db_pool_utilization{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "DB pool utilization",
+         "type": "stat"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 8,
+            "y": 0
+         },
+         "id": 3,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (sidekiq_stats_enqueued{namespace=\"$namespace\"})",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Enqueued backlog",
+         "type": "stat"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+         },
+         "id": 4,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:sidekiq_queue_latency:p95{namespace=\"$namespace\",queue!=\"\"}",
+               "legendFormat": "{{queue}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Per-queue latency (p95 seconds)",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 5,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "max by (namespace, queue) (mastodon:sidekiq_queue_latency:p95_short{namespace=\"$namespace\",queue!=\"\"})",
+               "legendFormat": "{{queue}} short",
+               "refId": "A"
+            }
+         ],
+         "title": "Queue latency (short window)",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 6,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace, queue) (mastodon:sidekiq_jobs:processed_rate5m{namespace=\"$namespace\",queue!=\"\"})",
+               "legendFormat": "{{queue}} processed",
+               "refId": "A"
+            }
+         ],
+         "title": "Job throughput",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 7,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace, queue) (mastodon:sidekiq_jobs:failed_rate5m{namespace=\"$namespace\",queue!=\"\"})",
+               "legendFormat": "{{queue}} failed",
+               "refId": "A"
+            }
+         ],
+         "title": "Job failure rate",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 21
+         },
+         "id": 8,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "deriv(max by (namespace) (sidekiq_stats_dead_size{namespace=\"$namespace\"})[15m])",
+               "legendFormat": "dead deriv",
+               "refId": "A"
+            },
+            {
+               "expr": "deriv(max by (namespace) (sidekiq_stats_retry_size{namespace=\"$namespace\"})[15m])",
+               "legendFormat": "retry deriv",
+               "refId": "B"
+            }
+         ],
+         "title": "Dead vs retry queue growth",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "cores"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 28
+         },
+         "id": 9,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"mastodon-sidekiq.*\",container!=\"\"}[5m]))",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "CPU usage (total)",
+         "type": "timeseries"
+      },
+      {
+         "description": null,
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "bytes"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 28
+         },
+         "id": 10,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"mastodon-sidekiq.*\",container!=\"\"})",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "Memory usage (total)",
+         "type": "timeseries"
+      }
+   ],
+   "refresh": "30s",
+   "schemaVersion": 39,
+   "tags": [
+      "mastodon"
+   ],
+   "templating": {
+      "list": [
+         {
+            "current": {
+               "text": "toot-community",
+               "value": "toot-community"
+            },
+            "definition": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "includeAll": false,
+            "label": "Namespace",
+            "multi": false,
+            "name": "namespace",
+            "query": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "refresh": 1,
+            "sort": 1,
+            "type": "query"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-12h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "Mastodon Sidekiq",
+   "uid": "mastodon-sidekiq",
+   "version": 1
+}

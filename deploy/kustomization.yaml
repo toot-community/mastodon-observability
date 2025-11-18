@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: mastodon-observability
+
+resources:
+  - namespace.yaml
+  - ../generated/alerts/recording-rules.yaml
+  - ../generated/alerts/alert-rules.yaml
+
+configMapGenerator:
+  - name: grafana-mastodon-overall
+    files:
+      - dashboard.json=../generated/dashboards/overall.json
+  - name: grafana-mastodon-web
+    files:
+      - dashboard.json=../generated/dashboards/web.json
+  - name: grafana-mastodon-sidekiq
+    files:
+      - dashboard.json=../generated/dashboards/sidekiq.json
+  - name: grafana-mastodon-streaming
+    files:
+      - dashboard.json=../generated/dashboards/streaming.json
+  - name: grafana-mastodon-edge
+    files:
+      - dashboard.json=../generated/dashboards/edge.json
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"

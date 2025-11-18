@@ -1,0 +1,542 @@
+{
+   "editable": true,
+   "links": [
+      {
+         "asDropdown": true,
+         "includeVars": true,
+         "tags": [
+            "mastodon"
+         ],
+         "title": "Mastodon dashboards",
+         "type": "dashboards"
+      }
+   ],
+   "panels": [
+      {
+         "description": "Long-window availability SLO attainment for user-facing routes.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_availability:availability_30d{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Availability (30d)",
+         "type": "stat"
+      },
+      {
+         "description": "Ingress APDEX (100/500ms) excluding streaming; fast health snapshot.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 4,
+            "y": 0
+         },
+         "id": 2,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:edge_apdex:overall{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "APDEX (edge)",
+         "type": "stat"
+      },
+      {
+         "description": "Total connected streaming clients right now.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 8,
+            "y": 0
+         },
+         "id": 3,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_connected_clients_total{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Streaming clients",
+         "type": "stat"
+      },
+      {
+         "description": "Multi-window burn rates vs web availability SLO; alert source.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+         },
+         "id": 4,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_availability:burn_rate_5m{namespace=\"$namespace\"}",
+               "legendFormat": "5m burn",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_availability:burn_rate_1h{namespace=\"$namespace\"}",
+               "legendFormat": "1h burn",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_availability:burn_rate_30m{namespace=\"$namespace\"}",
+               "legendFormat": "30m burn",
+               "refId": "C"
+            }
+         ],
+         "title": "Error budget burn",
+         "type": "timeseries"
+      },
+      {
+         "description": "App-side latency percentiles (diagnostic).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 5,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_latency:p50_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p50",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_latency:p90_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p90",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_latency:p99_seconds{namespace=\"$namespace\"}",
+               "legendFormat": "p99",
+               "refId": "C"
+            }
+         ],
+         "title": "Web latency percentiles",
+         "type": "timeseries"
+      },
+      {
+         "description": "Traffic split; confirms user-facing load vs federation/background.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 6,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:web_requests_user:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "user-facing",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_requests_federation:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "federation",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:web_requests_uncategorized:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "uncategorized",
+               "refId": "C"
+            }
+         ],
+         "title": "Request mix (req/s)",
+         "type": "timeseries"
+      },
+      {
+         "description": "p95 queue latency across Sidekiq queues; alerts derive from this.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 7,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "max by (namespace, queue) (mastodon:sidekiq_queue_latency:p95{namespace=\"$namespace\",queue!=\"\"})",
+               "legendFormat": "{{queue}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Sidekiq queue latency (p95)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Streaming client mix (websocket/eventsource) over time.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 21
+         },
+         "id": 8,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_connected_clients{namespace=\"$namespace\"}",
+               "legendFormat": "{{type}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Streaming clients by type",
+         "type": "timeseries"
+      },
+      {
+         "description": "Ingress request rate vs app-handled rate; gap approximates cache hits.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "p/s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 21
+         },
+         "id": 9,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (mastodon:edge_rps{namespace=\"$namespace\"})",
+               "legendFormat": "edge rps",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:web_requests:rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "app rps",
+               "refId": "B"
+            }
+         ],
+         "title": "Ingress vs app traffic",
+         "type": "timeseries"
+      },
+      {
+         "description": "Estimated cache-hit ratio from ingress vs app RPS.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 0,
+            "y": 29
+         },
+         "id": 10,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:edge_cache_hit_ratio{namespace=\"$namespace\"}",
+               "legendFormat": "ratio",
+               "refId": "A"
+            }
+         ],
+         "title": "Cache hit ratio (estimated)",
+         "type": "timeseries"
+      },
+      {
+         "datasource": "VictoriaLogs",
+         "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 35
+         },
+         "id": 11,
+         "options": {
+            "derivedFields": [ ],
+            "limit": 100,
+            "query": {
+               "expr": "",
+               "intervals": [ ],
+               "query": "",
+               "refId": "A"
+            },
+            "queryType": "logs",
+            "timeFrom": "now-30m",
+            "timeTo": "now"
+         },
+         "targets": [
+            {
+               "datasource": "VictoriaLogs",
+               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_name:~\"^mastodon-(web|sidekiq.*|streaming)\" and _msg:~$log_search",
+               "queryType": "logs",
+               "refId": "A"
+            }
+         ],
+         "title": "Recent Mastodon logs",
+         "type": "logs"
+      }
+   ],
+   "refresh": "30s",
+   "schemaVersion": 39,
+   "tags": [
+      "mastodon"
+   ],
+   "templating": {
+      "list": [
+         {
+            "current": {
+               "text": "toot-community",
+               "value": "toot-community"
+            },
+            "definition": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "includeAll": false,
+            "label": "Namespace",
+            "multi": false,
+            "name": "namespace",
+            "query": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "refresh": 1,
+            "sort": 1,
+            "type": "query"
+         },
+         {
+            "current": {
+               "text": "",
+               "value": ""
+            },
+            "label": "Log search text",
+            "name": "log_search",
+            "query": "",
+            "type": "textbox"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-12h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "Mastodon Overview",
+   "uid": "mastodon-overall",
+   "version": 1
+}

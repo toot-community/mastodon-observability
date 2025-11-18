@@ -1,0 +1,770 @@
+{
+   "editable": true,
+   "links": [
+      {
+         "asDropdown": true,
+         "includeVars": true,
+         "tags": [
+            "mastodon"
+         ],
+         "title": "Mastodon dashboards",
+         "type": "dashboards"
+      }
+   ],
+   "panels": [
+      {
+         "description": "Total streaming clients; dropping to zero freezes timelines.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_connected_clients_total{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Connected clients",
+         "type": "stat"
+      },
+      {
+         "description": "P99 eventloop lag; >100ms sustained means CPU/GC trouble.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 4,
+            "y": 0
+         },
+         "id": 2,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_eventloop_lag_p99{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Eventloop lag p99",
+         "type": "stat"
+      },
+      {
+         "description": "Busy/total PG connections; near 1 shows DB contention.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 8,
+            "y": 0
+         },
+         "id": 3,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_pg_pool_utilization{namespace=\"$namespace\"}",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "PG pool utilization",
+         "type": "stat"
+      },
+      {
+         "description": "Client counts per pod and transport (websocket/eventsource).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+         },
+         "id": 4,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_connected_clients{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} {{type}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Connected clients by type",
+         "type": "timeseries"
+      },
+      {
+         "description": "Current vs rolling baseline and drop ratio for connected clients.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 5,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_connected_clients_total{namespace=\"$namespace\"}",
+               "legendFormat": "current",
+               "refId": "A"
+            },
+            {
+               "expr": "mastodon:streaming_clients:baseline{namespace=\"$namespace\"}",
+               "legendFormat": "baseline",
+               "refId": "B"
+            },
+            {
+               "expr": "mastodon:streaming_clients:drop_ratio{namespace=\"$namespace\"}",
+               "legendFormat": "drop ratio",
+               "refId": "C"
+            }
+         ],
+         "title": "Client baseline vs current (drop ratio)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Active streaming channels by type; correlates with subscriptions/load.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 5
+         },
+         "id": 6,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace, type) (connected_channels{namespace=\"$namespace\",type!=\"\"})",
+               "legendFormat": "{{type}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Channels",
+         "type": "timeseries"
+      },
+      {
+         "description": "Messages delivered to clients by type (rate).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 7,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_messages_sent_rate5m{namespace=\"$namespace\",type!=\"\"}",
+               "legendFormat": "{{type}} out",
+               "refId": "A"
+            }
+         ],
+         "title": "Messages sent",
+         "type": "timeseries"
+      },
+      {
+         "description": "Ingress from Redis pub/sub (rate); should track outbound messages.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 8,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "mastodon:streaming_messages_recv_rate5m{namespace=\"$namespace\"}",
+               "legendFormat": "redis",
+               "refId": "A"
+            }
+         ],
+         "title": "Messages received from Redis",
+         "type": "timeseries"
+      },
+      {
+         "description": "Eventloop latency percentiles; rising p99 with stable p50 suggests bursts.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 21
+         },
+         "id": 9,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "max by (namespace) (nodejs_eventloop_lag_p50_seconds{namespace=\"$namespace\"})",
+               "legendFormat": "p50",
+               "refId": "A"
+            },
+            {
+               "expr": "max by (namespace) (nodejs_eventloop_lag_p90_seconds{namespace=\"$namespace\"})",
+               "legendFormat": "p90",
+               "refId": "B"
+            },
+            {
+               "expr": "max by (namespace) (nodejs_eventloop_lag_p99_seconds{namespace=\"$namespace\"})",
+               "legendFormat": "p99",
+               "refId": "C"
+            }
+         ],
+         "title": "Eventloop lag distribution",
+         "type": "timeseries"
+      },
+      {
+         "description": "Total CPU for streaming pods; link with lag spikes.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "cores"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 29
+         },
+         "id": 10,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"mastodon-streaming.*\",container!=\"\"}[5m]))",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "CPU usage (total)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Total memory for streaming pods; watch for leaks.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "bytes"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 29
+         },
+         "id": 11,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"mastodon-streaming.*\",container!=\"\"})",
+               "legendFormat": "total usage",
+               "refId": "A"
+            }
+         ],
+         "title": "Memory usage (total)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Mean GC pause per kind; spikes often align with lag or heap growth.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 37
+         },
+         "id": 12,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace, kind) (rate(nodejs_gc_duration_seconds_sum{namespace=\"$namespace\",kind!=\"\"}[5m])) / clamp_min(sum by (namespace, kind) (rate(nodejs_gc_duration_seconds_count{namespace=\"$namespace\",kind!=\"\"}[5m])), 1e-6)",
+               "legendFormat": "{{kind}} mean",
+               "refId": "A"
+            }
+         ],
+         "title": "GC duration by kind",
+         "type": "timeseries"
+      },
+      {
+         "description": "Open FDs and utilization (open/max); rising lines suggest leak or overload.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 37
+         },
+         "id": 13,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "process_open_fds{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} open",
+               "refId": "A"
+            },
+            {
+               "expr": "process_open_fds{namespace=\"$namespace\"} / clamp_min(process_max_fds{namespace=\"$namespace\"}, 1)",
+               "legendFormat": "{{pod}} utilization",
+               "refId": "B"
+            }
+         ],
+         "title": "File descriptors",
+         "type": "timeseries"
+      },
+      {
+         "description": "Redis channels subscribed; should track channels and client activity.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 45
+         },
+         "id": 14,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "redis_subscriptions{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} subscriptions",
+               "refId": "A"
+            }
+         ],
+         "title": "Redis subscriptions",
+         "type": "timeseries"
+      },
+      {
+         "description": "Queries waiting for PG connections; any >0 means contention.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 45
+         },
+         "id": 15,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "pg_pool_waiting_queries{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} waiting",
+               "refId": "A"
+            }
+         ],
+         "title": "PG pool waiting queries",
+         "type": "timeseries"
+      },
+      {
+         "description": "Active handles/requests/resources; slow drift up suggests leaks between deploys.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 53
+         },
+         "id": 16,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "nodejs_active_handles_total{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} handles",
+               "refId": "A"
+            },
+            {
+               "expr": "nodejs_active_requests_total{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} requests",
+               "refId": "B"
+            },
+            {
+               "expr": "nodejs_active_resources_total{namespace=\"$namespace\"}",
+               "legendFormat": "{{pod}} resources",
+               "refId": "C"
+            }
+         ],
+         "title": "Active Node handles/requests/resources",
+         "type": "timeseries"
+      },
+      {
+         "datasource": "VictoriaLogs",
+         "gridPos": {
+            "h": 16,
+            "w": 24,
+            "x": 0,
+            "y": 61
+         },
+         "id": 17,
+         "options": {
+            "derivedFields": [ ],
+            "limit": 100,
+            "query": {
+               "expr": "",
+               "intervals": [ ],
+               "query": "",
+               "refId": "A"
+            },
+            "queryType": "logs",
+            "timeFrom": "now-30m",
+            "timeTo": "now"
+         },
+         "targets": [
+            {
+               "datasource": "VictoriaLogs",
+               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_name:~\"^mastodon-streaming\" and _msg:~$streaming_log_search",
+               "queryType": "logs",
+               "refId": "A"
+            }
+         ],
+         "title": "Streaming logs (last 30m)",
+         "type": "logs"
+      }
+   ],
+   "refresh": "30s",
+   "schemaVersion": 39,
+   "tags": [
+      "mastodon"
+   ],
+   "templating": {
+      "list": [
+         {
+            "current": {
+               "text": "toot-community",
+               "value": "toot-community"
+            },
+            "definition": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "includeAll": false,
+            "label": "Namespace",
+            "multi": false,
+            "name": "namespace",
+            "query": "label_values(mastodon:web_requests:rate5m, namespace)",
+            "refresh": 1,
+            "sort": 1,
+            "type": "query"
+         },
+         {
+            "current": {
+               "text": ".*",
+               "value": ".*"
+            },
+            "label": "Streaming log search",
+            "name": "streaming_log_search",
+            "query": ".*",
+            "type": "textbox"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-12h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "Mastodon Streaming",
+   "uid": "mastodon-streaming",
+   "version": 1
+}

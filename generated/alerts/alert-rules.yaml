@@ -1,0 +1,178 @@
+{
+   "apiVersion": "monitoring.coreos.com/v1",
+   "kind": "PrometheusRule",
+   "metadata": {
+      "labels": {
+         "app": "mastodon-observability",
+         "role": "alerting"
+      },
+      "name": "mastodon-alert-rules",
+      "namespace": "mastodon-observability"
+   },
+   "spec": {
+      "groups": [
+         {
+            "name": "mastodon-web-alerts",
+            "rules": [
+               {
+                  "alert": "MastodonWebAvailabilityCritical",
+                  "annotations": {
+                     "description": "Sustained >14x error budget burn (5m & 1h) for user-facing requests in {{ $labels.namespace }} — fast-burn multiplier for 30d 99.5% SLO (budget would exhaust in ~2h). Check dashboards: Mastodon Overview (availability/burn) and Web logs panel (namespace prefilled).",
+                     "grafana_dashboards": "overview:web logs",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-availability-critical.md",
+                     "summary": "Web availability SLO burn running hot"
+                  },
+                  "expr": "(mastodon:web_availability:burn_rate_5m{namespace=~\"^(?:toot-community)$\"} > 14) and (mastodon:web_availability:burn_rate_1h{namespace=~\"^(?:toot-community)$\"} > 14)",
+                  "for": "5m",
+                  "labels": {
+                     "service": "mastodon-web",
+                     "severity": "critical"
+                  }
+               },
+               {
+                  "alert": "MastodonWebAvailabilityWarning",
+                  "annotations": {
+                     "description": "Error budget burn is trending high (30m/6h) in {{ $labels.namespace }} — investigate before paging impact. Pivot: Mastodon Overview (burn) → Web dashboard → Web logs panel (filter namespace).",
+                     "grafana_dashboards": "overview:web logs",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-availability-warning.md",
+                     "summary": "Web availability budget burn elevated"
+                  },
+                  "expr": "(mastodon:web_availability:burn_rate_30m{namespace=~\"^(?:toot-community)$\"} > 3) and (mastodon:web_availability:burn_rate_6h{namespace=~\"^(?:toot-community)$\"} > 1)",
+                  "for": "15m",
+                  "labels": {
+                     "service": "mastodon-web",
+                     "severity": "warning"
+                  }
+               },
+               {
+                  "alert": "MastodonWebLatencyCritical",
+                  "annotations": {
+                     "description": "User-facing request p99 latency is above 1000 ms while traffic is present in {{ $labels.namespace }}. Check Web/Overview dashboards and Web logs for errors/slow endpoints.",
+                     "grafana_dashboards": "web:web logs",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-latency-critical.md",
+                     "summary": "Web p99 latency is above 1s"
+                  },
+                  "expr": "(mastodon:web_latency:p99_seconds{namespace=~\"^(?:toot-community)$\"} > 1.000) and (mastodon:web_requests_user:rate5m{namespace=~\"^(?:toot-community)$\"} > 1)",
+                  "for": "10m",
+                  "labels": {
+                     "service": "mastodon-web",
+                     "severity": "critical"
+                  }
+               },
+               {
+                  "alert": "MastodonWebLatencyWarning",
+                  "annotations": {
+                     "description": "Approximate APDEX dropped below 0.85 in {{ $labels.namespace }}; review SQL vs app latency panels and Web logs for errors/slow routes.",
+                     "grafana_dashboards": "web:web logs",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-latency-warning.md",
+                     "summary": "Web latency APDEX degraded"
+                  },
+                  "expr": "mastodon:edge_apdex:overall{namespace=~\"^(?:toot-community)$\"} < 0.85",
+                  "for": "15m",
+                  "labels": {
+                     "service": "mastodon-web",
+                     "severity": "warning"
+                  }
+               }
+            ]
+         },
+         {
+            "name": "mastodon-sidekiq-alerts",
+            "rules": [
+               {
+                  "alert": "MastodonSidekiqQueueLatencyCritical",
+                  "annotations": {
+                     "description": "Queue {{ $labels.queue }} latency p95 is 120 seconds in {{ $labels.namespace }}; backlog is user-visible.",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/sidekiq-queue-latency-critical.md",
+                     "summary": "Sidekiq p95 latency above 120 seconds"
+                  },
+                  "expr": "mastodon:sidekiq_queue_latency:p95{namespace=~\"^(?:toot-community)$\"} > 120",
+                  "for": "10m",
+                  "labels": {
+                     "service": "mastodon-sidekiq",
+                     "severity": "critical"
+                  }
+               },
+               {
+                  "alert": "MastodonSidekiqQueueLatencyWarning",
+                  "annotations": {
+                     "description": "Queue {{ $labels.queue }} latency > 30 seconds for 5m in {{ $labels.namespace }}.",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/sidekiq-queue-latency-warning.md",
+                     "summary": "Sidekiq p95 latency trending high"
+                  },
+                  "expr": "mastodon:sidekiq_queue_latency:p95_short{namespace=~\"^(?:toot-community)$\"} > 30",
+                  "for": "5m",
+                  "labels": {
+                     "service": "mastodon-sidekiq",
+                     "severity": "warning"
+                  }
+               },
+               {
+                  "alert": "MastodonSidekiqDeadQueueWarning",
+                  "annotations": {
+                     "description": "Dead queue is growing faster than 1.0% of processed jobs in {{ $labels.namespace }}.",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/sidekiq-dead-queue-warning.md",
+                     "summary": "Sidekiq dead queue growth excessive"
+                  },
+                  "expr": "mastodon:sidekiq_dead_growth_ratio_1h{namespace=~\"^(?:toot-community)$\"} > 0.010",
+                  "for": "1h",
+                  "labels": {
+                     "service": "mastodon-sidekiq",
+                     "severity": "warning"
+                  }
+               }
+            ]
+         },
+         {
+            "name": "mastodon-streaming-alerts",
+            "rules": [
+               {
+                  "alert": "MastodonStreamingClientDropWarning",
+                  "annotations": {
+                     "description": "Connected clients and outbound messages dropped >50% vs recent baseline in {{ $labels.namespace }}. Check streaming dashboard for reconnect storms or delivery stalls.",
+                     "grafana_dashboards": "streaming",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-warning.md",
+                     "summary": "Streaming clients dropped significantly"
+                  },
+                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50)",
+                  "for": "10m",
+                  "labels": {
+                     "service": "mastodon-streaming",
+                     "severity": "warning"
+                  }
+               },
+               {
+                  "alert": "MastodonStreamingClientDropCritical",
+                  "annotations": {
+                     "description": "Connected clients and outbound messages dropped >80% vs recent baseline in {{ $labels.namespace }}. Investigate streaming availability.",
+                     "grafana_dashboards": "streaming",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-critical.md",
+                     "summary": "Streaming clients severely dropped"
+                  },
+                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80)",
+                  "for": "10m",
+                  "labels": {
+                     "service": "mastodon-streaming",
+                     "severity": "critical"
+                  }
+               },
+               {
+                  "alert": "MastodonStreamingEventloopLag",
+                  "annotations": {
+                     "description": "Event loop lag p99 is above 100 ms while clients are connected in {{ $labels.namespace }}. Check Streaming dashboard and logs for slow handlers/Redis issues.",
+                     "grafana_dashboards": "streaming:streaming logs",
+                     "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-eventloop-lag.md",
+                     "summary": "Streaming event loop lag > 100 ms"
+                  },
+                  "expr": "(mastodon:streaming_eventloop_lag_p99{namespace=~\"^(?:toot-community)$\"} > 0.100) and (mastodon:streaming_connected_clients_total{namespace=~\"^(?:toot-community)$\"} > 0)",
+                  "for": "10m",
+                  "labels": {
+                     "service": "mastodon-streaming",
+                     "severity": "warning"
+                  }
+               }
+            ]
+         }
+      ]
+   }
+}

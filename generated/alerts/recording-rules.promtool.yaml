@@ -1,0 +1,253 @@
+{
+   "groups": [
+      {
+         "name": "mastodon-web-slo",
+         "rules": [
+            {
+               "expr": "sum by (namespace) (rate(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))",
+               "record": "mastodon:web_requests:rate5m"
+            },
+            {
+               "expr": "sum by (namespace) (rate(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m]))",
+               "record": "mastodon:web_requests_user:rate5m"
+            },
+            {
+               "expr": "sum by (namespace) (rate(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[5m]))",
+               "record": "mastodon:web_requests_federation:rate5m"
+            },
+            {
+               "expr": "clamp_min(mastodon:web_requests:rate5m - mastodon:web_requests_user:rate5m - mastodon:web_requests_federation:rate5m, 0)",
+               "record": "mastodon:web_requests_uncategorized:rate5m"
+            },
+            {
+               "expr": "((sum by (namespace) (rate(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}))",
+               "record": "mastodon:web_requests:errors5m"
+            },
+            {
+               "expr": "((sum by (namespace) (rate(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}))",
+               "record": "mastodon:web_requests_federation:errors5m"
+            },
+            {
+               "expr": "clamp_min(mastodon:web_requests:errors5m - mastodon:web_requests_federation:errors5m, 0)",
+               "record": "mastodon:web_requests_user:errors5m"
+            },
+            {
+               "expr": "clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 0) /\n              clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[5m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 1e-6)",
+               "record": "mastodon:web_availability:error_ratio_5m"
+            },
+            {
+               "expr": "(mastodon:web_availability:error_ratio_5m) / 0.005000",
+               "record": "mastodon:web_availability:burn_rate_5m"
+            },
+            {
+               "expr": "1 - mastodon:web_availability:error_ratio_5m",
+               "record": "mastodon:web_availability:availability_5m"
+            },
+            {
+               "expr": "clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[30m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[30m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 0) /\n              clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[30m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[30m]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 1e-6)",
+               "record": "mastodon:web_availability:error_ratio_30m"
+            },
+            {
+               "expr": "(mastodon:web_availability:error_ratio_30m) / 0.005000",
+               "record": "mastodon:web_availability:burn_rate_30m"
+            },
+            {
+               "expr": "1 - mastodon:web_availability:error_ratio_30m",
+               "record": "mastodon:web_availability:availability_30m"
+            },
+            {
+               "expr": "clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[1h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[1h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 0) /\n              clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[1h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[1h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 1e-6)",
+               "record": "mastodon:web_availability:error_ratio_1h"
+            },
+            {
+               "expr": "(mastodon:web_availability:error_ratio_1h) / 0.005000",
+               "record": "mastodon:web_availability:burn_rate_1h"
+            },
+            {
+               "expr": "1 - mastodon:web_availability:error_ratio_1h",
+               "record": "mastodon:web_availability:availability_1h"
+            },
+            {
+               "expr": "clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[6h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[6h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 0) /\n              clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[6h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[6h]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 1e-6)",
+               "record": "mastodon:web_availability:error_ratio_6h"
+            },
+            {
+               "expr": "(mastodon:web_availability:error_ratio_6h) / 0.005000",
+               "record": "mastodon:web_availability:burn_rate_6h"
+            },
+            {
+               "expr": "1 - mastodon:web_availability:error_ratio_6h",
+               "record": "mastodon:web_availability:availability_6h"
+            },
+            {
+               "expr": "clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[30d]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\",status=~\"5..\"}[30d]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 0) /\n              clamp_min(((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[30d]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})) - ((sum by (namespace) (increase(ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:inboxes|outboxes|instance_actors|nodeinfo|instances|webfinger|well_known|follows|followers|push|pull|relay|outbox|federation_statuses|activitypub|remote_follow)$\",action=~\"^(?:show|index|create|deliver|accept|reject|followers|outbox)$\"}[30d]))) or on (namespace) sum by (namespace) (0 * ruby_http_requests_total{namespace=~\"^(?:microblog-network|toot-community)$\"})), 1e-6)",
+               "record": "mastodon:web_availability:error_ratio_30d"
+            },
+            {
+               "expr": "(mastodon:web_availability:error_ratio_30d) / 0.005000",
+               "record": "mastodon:web_availability:burn_rate_30d"
+            },
+            {
+               "expr": "1 - mastodon:web_availability:error_ratio_30d",
+               "record": "mastodon:web_availability:availability_30d"
+            }
+         ]
+      },
+      {
+         "name": "mastodon-web-latency",
+         "rules": [
+            {
+               "expr": "(sum by (namespace) (rate(ruby_http_request_duration_seconds_sum{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m]))) / clamp_min(sum by (namespace) (rate(ruby_http_request_duration_seconds_count{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m])), 1e-6)",
+               "record": "mastodon:web_latency:mean_seconds"
+            },
+            {
+               "expr": "(sum by (namespace) (rate(ruby_http_request_sql_duration_seconds_sum{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m]))) / clamp_min(sum by (namespace) (rate(ruby_http_request_sql_duration_seconds_count{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m])), 1e-6)",
+               "record": "mastodon:web_latency:sql_avg_seconds"
+            },
+            {
+               "expr": "(sum by (namespace) (rate(ruby_http_request_redis_duration_seconds_sum{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m]))) / clamp_min(sum by (namespace) (rate(ruby_http_request_redis_duration_seconds_count{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m])), 1e-6)",
+               "record": "mastodon:web_latency:redis_avg_seconds"
+            },
+            {
+               "expr": "(sum by (namespace) (rate(ruby_http_request_queue_duration_seconds_sum{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m]))) / clamp_min(sum by (namespace) (rate(ruby_http_request_queue_duration_seconds_count{namespace=~\"^(?:microblog-network|toot-community)$\",controller=~\"^(?:home|statuses|notifications|notifications|tags|tag|public|timelines|accounts|relationships|follow_requests|followers|following|favourites|bookmarks|media|explore|collections|search|intents|announcements|suggestions|oembed|filters|markers|reblogs|reblogged_by_accounts|follower_accounts|following_accounts|link|lists|media_proxy|registrations|health|replies|lookup|policies|credentials|familiar_followers|blocks|application|mutes|domain_blocks|custom_emojis|manifests|conversations|subscriptions)$\",action=~\"^(?:index|show|create|update|destroy|context|stream|other|new|unread_count|activity|raise_not_found)$\"}[5m])), 1e-6)",
+               "record": "mastodon:web_latency:queue_avg_seconds"
+            },
+            {
+               "expr": "clamp_min(\n            mastodon:web_latency:mean_seconds\n            - (mastodon:web_latency:sql_avg_seconds or on (namespace) vector(0))\n            - (mastodon:web_latency:redis_avg_seconds or on (namespace) vector(0))\n            - (mastodon:web_latency:queue_avg_seconds or on (namespace) vector(0))\n          , 0)",
+               "record": "mastodon:web_latency:app_avg_seconds"
+            },
+            {
+               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.5\"})",
+               "record": "mastodon:web_latency:p50_seconds"
+            },
+            {
+               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.9\"})",
+               "record": "mastodon:web_latency:p90_seconds"
+            },
+            {
+               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.99\"})",
+               "record": "mastodon:web_latency:p99_seconds"
+            }
+         ]
+      },
+      {
+         "name": "mastodon-sidekiq",
+         "rules": [
+            {
+               "expr": "quantile_over_time(0.95, sidekiq_queue_latency_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",queue=~\"^(?:default|push|ingress|mailers|pull|scheduler|fasp)$\"}[10m])",
+               "record": "mastodon:sidekiq_queue_latency:p95"
+            },
+            {
+               "expr": "quantile_over_time(0.95, sidekiq_queue_latency_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",queue=~\"^(?:default|push|ingress|mailers|pull|scheduler|fasp)$\"}[5m])",
+               "record": "mastodon:sidekiq_queue_latency:p95_short"
+            },
+            {
+               "expr": "sidekiq_queue_latency_seconds{namespace=~\"^(?:microblog-network|toot-community)$\"}",
+               "record": "mastodon:sidekiq_queue_latency_current"
+            },
+            {
+               "expr": "sum by (namespace, queue) (rate(sidekiq_jobs_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))",
+               "record": "mastodon:sidekiq_jobs:processed_rate5m"
+            },
+            {
+               "expr": "sum by (namespace, queue) (rate(sidekiq_failed_jobs_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))",
+               "record": "mastodon:sidekiq_jobs:failed_rate5m"
+            },
+            {
+               "expr": "(\n                sum by (namespace) (increase(sidekiq_dead_jobs_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[1h])) /\n                clamp_min(sum by (namespace) (increase(sidekiq_jobs_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[1h])), 1)\n              )",
+               "record": "mastodon:sidekiq_dead_growth_ratio_1h"
+            },
+            {
+               "expr": "sum by (namespace) (ruby_active_record_connection_pool_busy{namespace=~\"^(?:microblog-network|toot-community)$\"}) /\n               clamp_min(sum by (namespace) (ruby_active_record_connection_pool_size{namespace=~\"^(?:microblog-network|toot-community)$\"}), 1)",
+               "record": "mastodon:sidekiq_db_pool_utilization"
+            }
+         ]
+      },
+      {
+         "name": "mastodon-streaming",
+         "rules": [
+            {
+               "expr": "sum by (namespace, type) (connected_clients{namespace=~\"^(?:microblog-network|toot-community)$\"})",
+               "record": "mastodon:streaming_connected_clients"
+            },
+            {
+               "expr": "sum by (namespace) (connected_clients{namespace=~\"^(?:microblog-network|toot-community)$\"})",
+               "record": "mastodon:streaming_connected_clients_total"
+            },
+            {
+               "expr": "max_over_time(mastodon:streaming_connected_clients_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[30m])",
+               "record": "mastodon:streaming_clients:baseline"
+            },
+            {
+               "expr": "clamp_min(1 - (mastodon:streaming_connected_clients_total / clamp_min(mastodon:streaming_clients:baseline, 1)), 0)",
+               "record": "mastodon:streaming_clients:drop_ratio"
+            },
+            {
+               "expr": "max by (namespace) (nodejs_eventloop_lag_p99_seconds{namespace=~\"^(?:microblog-network|toot-community)$\"})",
+               "record": "mastodon:streaming_eventloop_lag_p99"
+            },
+            {
+               "expr": "sum by (namespace, type) (rate(messages_sent_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))",
+               "record": "mastodon:streaming_messages_sent_rate5m"
+            },
+            {
+               "expr": "sum by (namespace) (rate(redis_messages_received_total{namespace=~\"^(?:microblog-network|toot-community)$\"}[5m]))",
+               "record": "mastodon:streaming_messages_recv_rate5m"
+            },
+            {
+               "expr": "avg_over_time(mastodon:streaming_messages_sent_rate5m{namespace=~\"^(?:microblog-network|toot-community)$\"}[30m])",
+               "record": "mastodon:streaming_messages_sent:baseline"
+            },
+            {
+               "expr": "clamp_min(1 - (mastodon:streaming_messages_sent_rate5m / clamp_min(mastodon:streaming_messages_sent:baseline, 1e-6)), 0)",
+               "record": "mastodon:streaming_messages_sent:drop_ratio"
+            },
+            {
+               "expr": "sum by (namespace) (pg_pool_total_connections{namespace=~\"^(?:microblog-network|toot-community)$\"} - pg_pool_idle_connections{namespace=~\"^(?:microblog-network|toot-community)$\"}) /\n               clamp_min(sum by (namespace) (pg_pool_total_connections{namespace=~\"^(?:microblog-network|toot-community)$\"}), 1)",
+               "record": "mastodon:streaming_pg_pool_utilization"
+            }
+         ]
+      },
+      {
+         "name": "mastodon-edge",
+         "rules": [
+            {
+               "expr": "sum by (namespace, ingress, host) (label_replace(sum by (exported_namespace, ingress, host) (rate(nginx_ingress_controller_requests{exported_namespace=~\"^(?:microblog-network|toot-community)$\"}[5m])), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\"))",
+               "record": "mastodon:edge_rps"
+            },
+            {
+               "expr": "sum by (namespace, ingress, host) (label_replace(sum by (exported_namespace, ingress, host) (rate(nginx_ingress_controller_requests{exported_namespace=~\"^(?:microblog-network|toot-community)$\",status=~\"5..\"}[5m])), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\"))",
+               "record": "mastodon:edge_errors_rate"
+            },
+            {
+               "expr": "((sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) + 0.5 * clamp_min(sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.5\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) - sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 0)) / clamp_min(sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 1e-6)) and on (namespace, ingress) (sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) >= 0.100000)",
+               "record": "mastodon:edge_apdex:app"
+            },
+            {
+               "expr": "((sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:varnish-for-static)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) + 0.5 * clamp_min(sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:varnish-for-static)$\",status!~\"5..\",le=\"0.5\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) - sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:varnish-for-static)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 0)) / clamp_min(sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:varnish-for-static)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 1e-6)) and on (namespace, ingress) (sum by (namespace, ingress) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:varnish-for-static)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) >= 0.100000)",
+               "record": "mastodon:edge_apdex:static"
+            },
+            {
+               "expr": "((sum by (namespace) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) + 0.5 * clamp_min(sum by (namespace) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.5\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) - sum by (namespace) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",status!~\"5..\",le=\"0.1\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 0)) / clamp_min(sum by (namespace) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")), 1e-6)) and on (namespace) (sum by (namespace) (label_replace(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",ingress=~\"^(?:mastodon-web|mastodon-web-www-redirect)$\",le=\"+Inf\"}[5m]), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\")) >= 0.100000)",
+               "record": "mastodon:edge_apdex:overall"
+            },
+            {
+               "expr": "sum by (namespace, ingress, host) (label_replace(histogram_quantile(0.5, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",host!~\"streaming\\\\..*\"}[5m]))), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\"))",
+               "record": "mastodon:edge_latency_p50"
+            },
+            {
+               "expr": "sum by (namespace, ingress, host) (label_replace(histogram_quantile(0.9, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",host!~\"streaming\\\\..*\"}[5m]))), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\"))",
+               "record": "mastodon:edge_latency_p90"
+            },
+            {
+               "expr": "sum by (namespace, ingress, host) (label_replace(histogram_quantile(0.99, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace=~\"^(?:microblog-network|toot-community)$\",host!~\"streaming\\\\..*\"}[5m]))), \"namespace\", \"$1\", \"exported_namespace\", \"(.*)\"))",
+               "record": "mastodon:edge_latency_p99"
+            },
+            {
+               "expr": "clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1)",
+               "record": "mastodon:edge_cache_hit_ratio"
+            }
+         ]
+      }
+   ]
+}
