@@ -19,6 +19,27 @@ This repository contains the Jsonnet/Grafonnet code that powers observability fo
 - PrometheusRule-compatible operator (vmalert/VM operator in our case).
 - Tooling to render: `jsonnet`, `jsonnetfmt`, `jsonnet-lint`, `promtool`, `kustomize`, `kubectl`.
 
+### Mastodon deployment assumptions
+
+- **Ingress**: We front Mastodon with ingress-nginx (standard controller). Edge metrics/APDEX rely on nginx-ingress histogram buckets.
+- **Prometheus exporter settings**: (see [Mastodon docs](https://docs.joinmastodon.org/admin/config/#prometheus))
+  - Generic env (web/sidekiq/streaming):
+    - `MASTODON_PROMETHEUS_EXPORTER_ENABLED="true"`
+    - `MASTODON_PROMETHEUS_EXPORTER_WEB_DETAILED_METRICS="true"`
+    - `MASTODON_PROMETHEUS_EXPORTER_SIDEKIQ_DETAILED_METRICS="true"`
+    - `PROMETHEUS_EXPORTER_HOST="127.0.0.1"`
+    - `PROMETHEUS_EXPORTER_PORT="9394"`
+  - Sidekiq env overrides (runs exporter inside the worker Pod):
+    - `MASTODON_PROMETHEUS_EXPORTER_ENABLED="true"`
+    - `MASTODON_PROMETHEUS_EXPORTER_LOCAL="true"`
+    - `MASTODON_PROMETHEUS_EXPORTER_HOST="0.0.0.0"`
+    - `MASTODON_PROMETHEUS_EXPORTER_PORT="9394"`
+- **Web exporter sidecar**: Mastodon web Pods run a sidecar container using the same Mastodon image executing `./bin/prometheus_exporter` (our Helm chart handles this; see [toot-community/platform](https://github.com/toot-community/platform/tree/main/charts/mastodon)).
+- **Logging**: Vector ships Pod logs to VictoriaLogs; dashboards assume fields like `_msg`, `kubernetes.pod_namespace`, and `kubernetes.pod_name`.
+- **Scraping**: VictoriaMetrics scrapes the exporters on all Mastodon Pods, as well as ingress-nginx metrics.
+
+If you deploy Mastodon differently (other ingress, disabled exporters, etc.) you'll need equivalent metrics/logs to drive these dashboards.
+
 ## Generate / lint / apply
 ```sh
 make generate          # render to generated/
