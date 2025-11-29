@@ -28,10 +28,10 @@ local h = import './helpers.libsonnet';
         ], 's', 0, 5, 12, 8, description='Edge latency percentiles from Traefik buckets for app ingress (user-facing).'),
 
         h.timeseriesPanel(config, 22, 'Rails pod latency (approx)', [
-          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.5"})', legendFormat: '{{pod}} p50' },
-          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.9"})', legendFormat: '{{pod}} p90' },
-          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99"})', legendFormat: '{{pod}} p99' },
-        ], 's', 0, 13, 12, 7, description='Per-pod Rails summary quantiles (max over pods); approximation for pod latency, not a global SLO view.'),
+          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.5",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: '{{pod}} p50' },
+          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.9",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: '{{pod}} p90' },
+          { expr: 'max by (namespace, pod) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: '{{pod}} p99' },
+        ], 's', 0, 13, 12, 7, description='Approximate Rails pod latency (max over pods) excluding MediaProxyController/MediaController; for SLO latency use the Traefik edge panel above.'),
 
         h.timeseriesPanel(config, 5, 'APDEX (edge) over time', [
           { expr: 'mastodon:edge_apdex:overall{namespace="$namespace"}', legendFormat: 'overall' },

@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Per-pod Rails summary quantiles (max over pods); approximation for pod latency, not a global SLO view.",
+         "description": "Approximate Rails pod latency (max over pods) excluding MediaProxyController/MediaController; for SLO latency use the Traefik edge panel above.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,17 +240,17 @@
          },
          "targets": [
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "{{pod}} p50",
                "refId": "A"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "{{pod}} p90",
                "refId": "B"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "{{pod}} p99",
                "refId": "C"
             }

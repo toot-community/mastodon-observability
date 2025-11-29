@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "App-side latency percentiles (diagnostic).",
+         "description": "Rails summary latency (approx), excluding MediaProxyController/MediaController; edge latency panels remain the SLO source.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,22 +240,22 @@
          },
          "targets": [
             {
-               "expr": "mastodon:web_latency:p50_seconds{namespace=\"$namespace\"}",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "p50",
                "refId": "A"
             },
             {
-               "expr": "mastodon:web_latency:p90_seconds{namespace=\"$namespace\"}",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "p90",
                "refId": "B"
             },
             {
-               "expr": "mastodon:web_latency:p99_seconds{namespace=\"$namespace\"}",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(MediaProxyController|MediaController)$\"})",
                "legendFormat": "p99",
                "refId": "C"
             }
          ],
-         "title": "Web latency percentiles",
+         "title": "Web latency percentiles (Rails approx)",
          "type": "timeseries"
       },
       {
