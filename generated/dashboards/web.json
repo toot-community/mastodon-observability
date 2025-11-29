@@ -163,7 +163,7 @@
          "type": "stat"
       },
       {
-         "description": "User-facing response time percentiles from app summaries (diagnostic).",
+         "description": "Edge latency percentiles from Traefik buckets for app ingress (user-facing).",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -192,22 +192,70 @@
          },
          "targets": [
             {
-               "expr": "mastodon:web_latency:p50_seconds{namespace=\"$namespace\"}",
-               "legendFormat": "p50",
+               "expr": "mastodon:edge_latency_p50{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p50 app ingress",
                "refId": "A"
             },
             {
-               "expr": "mastodon:web_latency:p90_seconds{namespace=\"$namespace\"}",
-               "legendFormat": "p90",
+               "expr": "mastodon:edge_latency_p90{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p90 app ingress",
                "refId": "B"
             },
             {
-               "expr": "mastodon:web_latency:p99_seconds{namespace=\"$namespace\"}",
-               "legendFormat": "p99",
+               "expr": "mastodon:edge_latency_p99{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p99 app ingress",
                "refId": "C"
             }
          ],
-         "title": "Latency percentiles",
+         "title": "Latency percentiles (edge)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Per-pod Rails summary quantiles (max over pods); approximation for pod latency, not a global SLO view.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 22,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\"})",
+               "legendFormat": "{{pod}} p50",
+               "refId": "A"
+            },
+            {
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\"})",
+               "legendFormat": "{{pod}} p90",
+               "refId": "B"
+            },
+            {
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\"})",
+               "legendFormat": "{{pod}} p99",
+               "refId": "C"
+            }
+         ],
+         "title": "Rails pod latency (approx)",
          "type": "timeseries"
       },
       {
@@ -326,7 +374,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 13
+            "y": 20
          },
          "id": 7,
          "options": {
@@ -364,7 +412,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 13
+            "y": 20
          },
          "id": 8,
          "options": {
@@ -412,7 +460,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 27
          },
          "id": 9,
          "options": {
@@ -450,7 +498,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 27
          },
          "id": 10,
          "options": {
@@ -488,7 +536,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 28
+            "y": 35
          },
          "id": 11,
          "options": {
@@ -536,7 +584,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 28
+            "y": 35
          },
          "id": 12,
          "options": {
@@ -574,7 +622,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 36
+            "y": 43
          },
          "id": 13,
          "options": {
@@ -612,7 +660,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 36
+            "y": 43
          },
          "id": 14,
          "options": {
@@ -650,7 +698,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 44
+            "y": 51
          },
          "id": 15,
          "options": {
@@ -688,7 +736,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 44
+            "y": 51
          },
          "id": 16,
          "options": {
@@ -726,7 +774,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 52
+            "y": 59
          },
          "id": 17,
          "options": {
@@ -769,7 +817,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 52
+            "y": 59
          },
          "id": 18,
          "options": {
@@ -832,7 +880,7 @@
             "h": 5,
             "w": 4,
             "x": 0,
-            "y": 60
+            "y": 67
          },
          "id": 19,
          "options": {
@@ -882,7 +930,7 @@
             "h": 5,
             "w": 4,
             "x": 4,
-            "y": 60
+            "y": 67
          },
          "id": 20,
          "options": {
@@ -913,7 +961,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 65
+            "y": 72
          },
          "id": 21,
          "options": {
