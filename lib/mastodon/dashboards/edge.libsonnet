@@ -6,7 +6,6 @@ local h = import './helpers.libsonnet';
     local base = h.baseDashboard(config, 'Mastodon Edge', 'mastodon-edge');
     base {
       panels: [
-        // TODO(traefik-refactor): Verify Traefik-based edge panels remain aligned with recording rules.
         h.statPanel(config, 1, 'Cache hit ratio', 'mastodon:edge_cache_hit_ratio{namespace="$namespace"}', 'percentunit', 0, 0, description='Estimated varnish/edge cache hit ratio from Traefik vs app RPS.'),
         h.statPanel(config, 2, 'Edge RPS', 'sum by (namespace) (mastodon:edge_rps{namespace="$namespace"})', 'p/s', 4, 0, description='Total Traefik service request rate at the edge.'),
         h.statPanel(config, 3, 'Edge 5xx rps', 'sum by (namespace) (mastodon:edge_errors_rate{namespace="$namespace"})', 'p/s', 8, 0, description='Edge-served 5xx per second (Traefik ingress layer).'),

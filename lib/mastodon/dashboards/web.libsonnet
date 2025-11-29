@@ -19,7 +19,6 @@ local h = import './helpers.libsonnet';
       panels: [
         h.statPanel(config, 1, 'Availability (5m)', 'mastodon:web_availability:availability_5m{namespace="$namespace"}', 'percentunit', 0, 0, description='User-facing success ratio over the last 5m; 1.0 means no 5xx.'),
         h.statPanel(config, 2, 'Availability (30d)', 'mastodon:web_availability:availability_30d{namespace="$namespace"}', 'percentunit', 4, 0, description='Long-window availability to gauge SLO burn over the period.'),
-        // TODO(traefik-refactor): Verify edge APDEX series now reflect Traefik-derived recordings.
         h.statPanel(config, 3, 'APDEX (edge)', 'mastodon:edge_apdex:overall{namespace="$namespace"}', 'none', 8, 0, description='Traefik edge APDEX (100/500ms) excluding streaming routes; reflects user experience.'),
 
         h.timeseriesPanel(config, 4, 'Latency percentiles', [

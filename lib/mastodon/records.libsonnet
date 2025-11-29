@@ -26,7 +26,6 @@ local buildGroups(config) = (
   // zeroNs provides a namespace-aligned zero time series so arithmetic never drops missing series
   // (e.g., 0 errors still emit a 0 rather than disappearing).
   local zeroNs = fmt('sum by (namespace) (0 * %s)', [h.metric('ruby_http_requests_total')]);
-  // TODO(traefik-refactor): Confirm Traefik-based edge latency/APDEX calculations stay aligned with thresholds.
   // APDEX now relies on Traefik edge latency histograms (ingress-level) because Rails/Puma only exposes summaries (no buckets),
   // which made the prior mean-based APDEX stay pegged at ~1.0. Using edge latency reflects user experience
   // and aligns with ingress-level SLOs; keep mean latency for diagnostics.
@@ -264,7 +263,6 @@ local buildGroups(config) = (
     {
       name: 'mastodon-edge',
       rules: (
-        // TODO(traefik-refactor): Validate Traefik service relabeling/regex for edge rules.
         local appKinds = config.ingress.apdex.appIngresses;
         local staticKinds = config.ingress.apdex.staticIngresses;
         local latencyKinds = appKinds + staticKinds;
