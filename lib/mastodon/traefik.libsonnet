@@ -34,6 +34,14 @@ local regexFrom(items) =
       ]),
       metric(metricName, extra=''):: fmt('%s{%s}', [metricName, selector(extra)]),
       metricForKinds(metricName, kinds, extra=''):: fmt('%s{%s}', [metricName, self.selectorForKinds(kinds, extra)]),
+      // Convenience helper to add namespace/ingress labels to a Traefik expression that still
+      // carries exported_service, avoiding repeated label_replace blocks at call sites.
+      withNamespaceIngress(expr):: self.labelNamespaceIngress(expr),
+      // Pre-aggregated bucket rates relabeled to (namespace, ingress, le); keeps exporters unchanged.
+      bucketRateByNamespaceIngress(metricName, kinds, window, extra='')::
+        fmt('sum by (namespace, ingress, le) (%s)', [
+          self.labelNamespaceIngress(fmt('rate(%s[%s])', [self.metricForKinds(metricName, kinds, extra), window])),
+        ]),
       // Derive namespace+ingress labels from the exported_service label (group1=namespace, group2=route/kind).
       labelNamespaceIngress(expr):: fmt(
         'label_replace(label_replace(%s, "ingress", "$2", "exported_service", "%s"), "namespace", "$1", "exported_service", "%s")',

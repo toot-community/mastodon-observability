@@ -151,15 +151,16 @@ local buildGroups(config) = (
         },
         {
           record: 'mastodon:web_latency:p50_seconds',
-          expr: h.avgQuantile('ruby_http_request_duration_seconds', '0.5'),
+          // Summary quantiles cannot be averaged; use max of per-pod quantiles as a safer upper bound.
+          expr: fmt('max by (namespace) (%s)', [h.metric('ruby_http_request_duration_seconds', 'quantile="0.5"')]),
         },
         {
           record: 'mastodon:web_latency:p90_seconds',
-          expr: h.avgQuantile('ruby_http_request_duration_seconds', '0.9'),
+          expr: fmt('max by (namespace) (%s)', [h.metric('ruby_http_request_duration_seconds', 'quantile="0.9"')]),
         },
         {
           record: 'mastodon:web_latency:p99_seconds',
-          expr: h.avgQuantile('ruby_http_request_duration_seconds', '0.99'),
+          expr: fmt('max by (namespace) (%s)', [h.metric('ruby_http_request_duration_seconds', 'quantile="0.99"')]),
         },
       ],
     },
@@ -215,49 +216,52 @@ local buildGroups(config) = (
 
     {
       name: 'mastodon-streaming',
-      rules: [
-        {
-          record: 'mastodon:streaming_connected_clients',
-          expr: fmt('sum by (namespace, type) (connected_clients{%s})', [h.selector()]),
-        },
-        {
-          record: 'mastodon:streaming_connected_clients_total',
-          expr: fmt('sum by (namespace) (connected_clients{%s})', [h.selector()]),
-        },
-        {
-          record: 'mastodon:streaming_clients:baseline',
-          expr: fmt('max_over_time(mastodon:streaming_connected_clients_total{%s}[%s])', [h.selector(), config.streaming.baselineWindow]),
-        },
-        {
-          record: 'mastodon:streaming_clients:drop_ratio',
-          expr: 'clamp_min(1 - (mastodon:streaming_connected_clients_total / clamp_min(mastodon:streaming_clients:baseline, 1)), 0)',
-        },
-        {
-          record: 'mastodon:streaming_eventloop_lag_p99',
-          expr: fmt('max by (namespace) (nodejs_eventloop_lag_p99_seconds{%s})', [h.selector()]),
-        },
-        {
-          record: 'mastodon:streaming_messages_sent_rate5m',
-          expr: fmt('sum by (namespace, type) (rate(messages_sent_total{%s}[5m]))', [h.selector()]),
-        },
-        {
-          record: 'mastodon:streaming_messages_recv_rate5m',
-          expr: fmt('sum by (namespace) (rate(redis_messages_received_total{%s}[5m]))', [h.selector()]),
-        },
-        {
-          record: 'mastodon:streaming_messages_sent:baseline',
-          expr: fmt('avg_over_time(mastodon:streaming_messages_sent_rate5m{%s}[%s])', [h.selector(), config.streaming.baselineWindow]),
-        },
-        {
-          record: 'mastodon:streaming_messages_sent:drop_ratio',
-          expr: 'clamp_min(1 - (mastodon:streaming_messages_sent_rate5m / clamp_min(mastodon:streaming_messages_sent:baseline, 1e-6)), 0)',
-        },
-        {
-          record: 'mastodon:streaming_pg_pool_utilization',
-          expr:
-            fmt('sum by (namespace) (pg_pool_total_connections{%s} - pg_pool_idle_connections{%s}) /\n               clamp_min(sum by (namespace) (pg_pool_total_connections{%s}), 1)', [h.selector(), h.selector(), h.selector()]),
-        },
-      ],
+      rules: (
+        local baselineFloor = 1;
+        [
+          {
+            record: 'mastodon:streaming_connected_clients',
+            expr: fmt('sum by (namespace, type) (connected_clients{%s})', [h.selector()]),
+          },
+          {
+            record: 'mastodon:streaming_connected_clients_total',
+            expr: fmt('sum by (namespace) (connected_clients{%s})', [h.selector()]),
+          },
+          {
+            record: 'mastodon:streaming_clients:baseline',
+            expr: fmt('max_over_time(mastodon:streaming_connected_clients_total{%s}[%s])', [h.selector(), config.streaming.baselineWindow]),
+          },
+          {
+            record: 'mastodon:streaming_clients:drop_ratio',
+            expr: fmt('(clamp_min(1 - (mastodon:streaming_connected_clients_total / clamp_min(mastodon:streaming_clients:baseline, %g)), 0)) and on (namespace) (mastodon:streaming_clients:baseline >= %g)', [baselineFloor, baselineFloor]),
+          },
+          {
+            record: 'mastodon:streaming_eventloop_lag_p99',
+            expr: fmt('max by (namespace) (nodejs_eventloop_lag_p99_seconds{%s})', [h.selector()]),
+          },
+          {
+            record: 'mastodon:streaming_messages_sent_rate5m',
+            expr: fmt('sum by (namespace, type) (rate(messages_sent_total{%s}[5m]))', [h.selector()]),
+          },
+          {
+            record: 'mastodon:streaming_messages_recv_rate5m',
+            expr: fmt('sum by (namespace) (rate(redis_messages_received_total{%s}[5m]))', [h.selector()]),
+          },
+          {
+            record: 'mastodon:streaming_messages_sent:baseline',
+            expr: fmt('avg_over_time(mastodon:streaming_messages_sent_rate5m{%s}[%s])', [h.selector(), config.streaming.baselineWindow]),
+          },
+          {
+            record: 'mastodon:streaming_messages_sent:drop_ratio',
+            expr: fmt('(clamp_min(1 - (mastodon:streaming_messages_sent_rate5m / clamp_min(mastodon:streaming_messages_sent:baseline, %g)), 0)) and on (namespace) (mastodon:streaming_messages_sent:baseline >= %g)', [baselineFloor, baselineFloor]),
+          },
+          {
+            record: 'mastodon:streaming_pg_pool_utilization',
+            expr:
+              fmt('sum by (namespace) (pg_pool_total_connections{%s} - pg_pool_idle_connections{%s}) /\n               clamp_min(sum by (namespace) (pg_pool_total_connections{%s}), 1)', [h.selector(), h.selector(), h.selector()]),
+          },
+        ]
+      ),
     },
 
     {
@@ -267,15 +271,14 @@ local buildGroups(config) = (
         local staticKinds = config.ingress.apdex.staticIngresses;
         local latencyKinds = appKinds + staticKinds;
         local sumByNsIngress(expr) = fmt('sum by (namespace, ingress) (%s)', [expr]);
-        local relabel(expr) = tf.labelNamespaceIngress(expr);
         [
           {
             record: 'mastodon:edge_rps',
-            expr: sumByNsIngress(relabel(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total'), config.ingress.rpsWindow]))),
+            expr: sumByNsIngress(tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total'), config.ingress.rpsWindow]))),
           },
           {
             record: 'mastodon:edge_errors_rate',
-            expr: sumByNsIngress(relabel(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total', 'code=~"5.."'), config.ingress.rpsWindow]))),
+            expr: sumByNsIngress(tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total', 'code=~"5.."'), config.ingress.rpsWindow]))),
           },
           {
             record: 'mastodon:edge_apdex:app',
@@ -291,28 +294,25 @@ local buildGroups(config) = (
           },
           {
             record: 'mastodon:edge_latency_p50',
-            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.5, sum by (exported_service, le) (rate(%s[%s])))', [
-              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
-              config.ingress.latencyWindow,
-            ]))),
+            expr: fmt('histogram_quantile(0.5, %s)', [
+              tf.bucketRateByNamespaceIngress('traefik_service_request_duration_seconds_bucket', latencyKinds, config.ingress.latencyWindow, 'protocol!="websocket"'),
+            ]),
           },
           {
             record: 'mastodon:edge_latency_p90',
-            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.9, sum by (exported_service, le) (rate(%s[%s])))', [
-              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
-              config.ingress.latencyWindow,
-            ]))),
+            expr: fmt('histogram_quantile(0.9, %s)', [
+              tf.bucketRateByNamespaceIngress('traefik_service_request_duration_seconds_bucket', latencyKinds, config.ingress.latencyWindow, 'protocol!="websocket"'),
+            ]),
           },
           {
             record: 'mastodon:edge_latency_p99',
-            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.99, sum by (exported_service, le) (rate(%s[%s])))', [
-              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
-              config.ingress.latencyWindow,
-            ]))),
+            expr: fmt('histogram_quantile(0.99, %s)', [
+              tf.bucketRateByNamespaceIngress('traefik_service_request_duration_seconds_bucket', latencyKinds, config.ingress.latencyWindow, 'protocol!="websocket"'),
+            ]),
           },
           {
             record: 'mastodon:edge_cache_hit_ratio',
-            expr: 'clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1)',
+            expr: 'clamp_min(clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1), 0)',
           },
         ]
       ),

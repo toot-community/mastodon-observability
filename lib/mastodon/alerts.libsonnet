@@ -148,70 +148,81 @@ local buildGroups(config) =
 
      {
        name: 'mastodon-streaming-alerts',
-       rules: [
-         {
-           alert: 'MastodonStreamingClientDropWarning',
-           expr:
-             fmt('(%s > %.2f) and (%s > %.2f)', [
-               h.metric('mastodon:streaming_clients:drop_ratio'),
-               config.streaming.drop.warningRatio,
-               h.metric('mastodon:streaming_messages_sent:drop_ratio'),
-               config.streaming.drop.warningRatio,
-             ]),
-           'for': config.streaming.drop.window,
-           labels: {
-             severity: 'warning',
-             service: 'mastodon-streaming',
+       rules: (
+         local streamingBaselineFloor = 1;
+         [
+           {
+             alert: 'MastodonStreamingClientDropWarning',
+             expr:
+               fmt('(%s > %.2f) and (%s > %.2f) and on (namespace) (%s >= %g) and on (namespace) (%s >= %g)', [
+                 h.metric('mastodon:streaming_clients:drop_ratio'),
+                 config.streaming.drop.warningRatio,
+                 h.metric('mastodon:streaming_messages_sent:drop_ratio'),
+                 config.streaming.drop.warningRatio,
+                 h.metric('mastodon:streaming_clients:baseline'),
+                 streamingBaselineFloor,
+                 h.metric('mastodon:streaming_messages_sent:baseline'),
+                 streamingBaselineFloor,
+               ]),
+             'for': config.streaming.drop.window,
+             labels: {
+               severity: 'warning',
+               service: 'mastodon-streaming',
+             },
+             annotations: {
+               summary: 'Streaming clients dropped significantly',
+               description: fmt('Connected clients and outbound messages dropped >%.0f%% vs recent baseline in {{ $labels.namespace }}. Check streaming dashboard for reconnect storms or delivery stalls.', [config.streaming.drop.warningRatio * 100]),
+               runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-warning.md',
+               grafana_dashboards: 'streaming',
+             },
            },
-           annotations: {
-             summary: 'Streaming clients dropped significantly',
-             description: fmt('Connected clients and outbound messages dropped >%.0f%% vs recent baseline in {{ $labels.namespace }}. Check streaming dashboard for reconnect storms or delivery stalls.', [config.streaming.drop.warningRatio * 100]),
-             runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-warning.md',
-             grafana_dashboards: 'streaming',
+           {
+             alert: 'MastodonStreamingClientDropCritical',
+             expr:
+               fmt('(%s > %.2f) and (%s > %.2f) and on (namespace) (%s >= %g) and on (namespace) (%s >= %g)', [
+                 h.metric('mastodon:streaming_clients:drop_ratio'),
+                 config.streaming.drop.criticalRatio,
+                 h.metric('mastodon:streaming_messages_sent:drop_ratio'),
+                 config.streaming.drop.criticalRatio,
+                 h.metric('mastodon:streaming_clients:baseline'),
+                 streamingBaselineFloor,
+                 h.metric('mastodon:streaming_messages_sent:baseline'),
+                 streamingBaselineFloor,
+               ]),
+             'for': config.streaming.drop.window,
+             labels: {
+               severity: 'critical',
+               service: 'mastodon-streaming',
+             },
+             annotations: {
+               summary: 'Streaming clients severely dropped',
+               description: fmt('Connected clients and outbound messages dropped >%.0f%% vs recent baseline in {{ $labels.namespace }}. Investigate streaming availability.', [config.streaming.drop.criticalRatio * 100]),
+               runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-critical.md',
+               grafana_dashboards: 'streaming',
+             },
            },
-         },
-         {
-           alert: 'MastodonStreamingClientDropCritical',
-           expr:
-             fmt('(%s > %.2f) and (%s > %.2f)', [
-               h.metric('mastodon:streaming_clients:drop_ratio'),
-               config.streaming.drop.criticalRatio,
-               h.metric('mastodon:streaming_messages_sent:drop_ratio'),
-               config.streaming.drop.criticalRatio,
-             ]),
-           'for': config.streaming.drop.window,
-           labels: {
-             severity: 'critical',
-             service: 'mastodon-streaming',
+           {
+             alert: 'MastodonStreamingEventloopLag',
+             expr:
+               fmt('(%s > %.3f) and (%s > 0)', [
+                 h.metric('mastodon:streaming_eventloop_lag_p99'),
+                 config.streaming.eventloopLagWarningSeconds,
+                 h.metric('mastodon:streaming_connected_clients_total'),
+               ]),
+             'for': config.streaming.lagWindow,
+             labels: {
+               severity: 'warning',
+               service: 'mastodon-streaming',
+             },
+             annotations: {
+               summary: fmt('Streaming event loop lag > %.0f ms', [config.streaming.eventloopLagWarningSeconds * 1000]),
+               description: fmt('Event loop lag p99 is above %.0f ms while clients are connected in {{ $labels.namespace }}. Check Streaming dashboard and logs for slow handlers/Redis issues.', [config.streaming.eventloopLagWarningSeconds * 1000]),
+               runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-eventloop-lag.md',
+               grafana_dashboards: 'streaming:streaming logs',
+             },
            },
-           annotations: {
-             summary: 'Streaming clients severely dropped',
-             description: fmt('Connected clients and outbound messages dropped >%.0f%% vs recent baseline in {{ $labels.namespace }}. Investigate streaming availability.', [config.streaming.drop.criticalRatio * 100]),
-             runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-critical.md',
-             grafana_dashboards: 'streaming',
-           },
-         },
-         {
-           alert: 'MastodonStreamingEventloopLag',
-           expr:
-             fmt('(%s > %.3f) and (%s > 0)', [
-               h.metric('mastodon:streaming_eventloop_lag_p99'),
-               config.streaming.eventloopLagWarningSeconds,
-               h.metric('mastodon:streaming_connected_clients_total'),
-             ]),
-           'for': config.streaming.lagWindow,
-           labels: {
-             severity: 'warning',
-             service: 'mastodon-streaming',
-           },
-           annotations: {
-             summary: fmt('Streaming event loop lag > %.0f ms', [config.streaming.eventloopLagWarningSeconds * 1000]),
-             description: fmt('Event loop lag p99 is above %.0f ms while clients are connected in {{ $labels.namespace }}. Check Streaming dashboard and logs for slow handlers/Redis issues.', [config.streaming.eventloopLagWarningSeconds * 1000]),
-             runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-eventloop-lag.md',
-             grafana_dashboards: 'streaming:streaming logs',
-           },
-         },
-       ],
+         ]
+       ),
      },
    ]);
 

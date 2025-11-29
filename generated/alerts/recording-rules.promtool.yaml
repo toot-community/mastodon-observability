@@ -117,15 +117,15 @@
                "record": "mastodon:web_latency:app_avg_seconds"
             },
             {
-               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.5\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.5\"})",
                "record": "mastodon:web_latency:p50_seconds"
             },
             {
-               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.9\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.9\"})",
                "record": "mastodon:web_latency:p90_seconds"
             },
             {
-               "expr": "avg by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.99\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=~\"^(?:microblog-network|toot-community)$\",quantile=\"0.99\"})",
                "record": "mastodon:web_latency:p99_seconds"
             }
          ]
@@ -179,7 +179,7 @@
                "record": "mastodon:streaming_clients:baseline"
             },
             {
-               "expr": "clamp_min(1 - (mastodon:streaming_connected_clients_total / clamp_min(mastodon:streaming_clients:baseline, 1)), 0)",
+               "expr": "(clamp_min(1 - (mastodon:streaming_connected_clients_total / clamp_min(mastodon:streaming_clients:baseline, 1)), 0)) and on (namespace) (mastodon:streaming_clients:baseline >= 1)",
                "record": "mastodon:streaming_clients:drop_ratio"
             },
             {
@@ -199,7 +199,7 @@
                "record": "mastodon:streaming_messages_sent:baseline"
             },
             {
-               "expr": "clamp_min(1 - (mastodon:streaming_messages_sent_rate5m / clamp_min(mastodon:streaming_messages_sent:baseline, 1e-6)), 0)",
+               "expr": "(clamp_min(1 - (mastodon:streaming_messages_sent_rate5m / clamp_min(mastodon:streaming_messages_sent:baseline, 1)), 0)) and on (namespace) (mastodon:streaming_messages_sent:baseline >= 1)",
                "record": "mastodon:streaming_messages_sent:drop_ratio"
             },
             {
@@ -232,19 +232,19 @@
                "record": "mastodon:edge_apdex:overall"
             },
             {
-               "expr": "sum by (namespace, ingress) (label_replace(label_replace(histogram_quantile(0.5, sum by (exported_service, le) (rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]))), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "expr": "histogram_quantile(0.5, sum by (namespace, ingress, le) (label_replace(label_replace(rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\")))",
                "record": "mastodon:edge_latency_p50"
             },
             {
-               "expr": "sum by (namespace, ingress) (label_replace(label_replace(histogram_quantile(0.9, sum by (exported_service, le) (rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]))), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "expr": "histogram_quantile(0.9, sum by (namespace, ingress, le) (label_replace(label_replace(rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\")))",
                "record": "mastodon:edge_latency_p90"
             },
             {
-               "expr": "sum by (namespace, ingress) (label_replace(label_replace(histogram_quantile(0.99, sum by (exported_service, le) (rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]))), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "expr": "histogram_quantile(0.99, sum by (namespace, ingress, le) (label_replace(label_replace(rate(traefik_service_request_duration_seconds_bucket{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|mastodon-web|varnish-for-static)-http-[0-9]+@kubernetesgateway$\",protocol!=\"websocket\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\")))",
                "record": "mastodon:edge_latency_p99"
             },
             {
-               "expr": "clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1)",
+               "expr": "clamp_min(clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1), 0)",
                "record": "mastodon:edge_cache_hit_ratio"
             }
          ]

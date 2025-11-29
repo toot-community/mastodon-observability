@@ -134,7 +134,7 @@
                      "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-warning.md",
                      "summary": "Streaming clients dropped significantly"
                   },
-                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50)",
+                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.50) and on (namespace) (mastodon:streaming_clients:baseline{namespace=~\"^(?:toot-community)$\"} >= 1) and on (namespace) (mastodon:streaming_messages_sent:baseline{namespace=~\"^(?:toot-community)$\"} >= 1)",
                   "for": "10m",
                   "labels": {
                      "service": "mastodon-streaming",
@@ -149,7 +149,7 @@
                      "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/streaming-client-drop-critical.md",
                      "summary": "Streaming clients severely dropped"
                   },
-                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80)",
+                  "expr": "(mastodon:streaming_clients:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80) and (mastodon:streaming_messages_sent:drop_ratio{namespace=~\"^(?:toot-community)$\"} > 0.80) and on (namespace) (mastodon:streaming_clients:baseline{namespace=~\"^(?:toot-community)$\"} >= 1) and on (namespace) (mastodon:streaming_messages_sent:baseline{namespace=~\"^(?:toot-community)$\"} >= 1)",
                   "for": "10m",
                   "labels": {
                      "service": "mastodon-streaming",
