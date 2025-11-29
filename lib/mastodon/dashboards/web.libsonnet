@@ -19,7 +19,8 @@ local h = import './helpers.libsonnet';
       panels: [
         h.statPanel(config, 1, 'Availability (5m)', 'mastodon:web_availability:availability_5m{namespace="$namespace"}', 'percentunit', 0, 0, description='User-facing success ratio over the last 5m; 1.0 means no 5xx.'),
         h.statPanel(config, 2, 'Availability (30d)', 'mastodon:web_availability:availability_30d{namespace="$namespace"}', 'percentunit', 4, 0, description='Long-window availability to gauge SLO burn over the period.'),
-        h.statPanel(config, 3, 'APDEX (edge)', 'mastodon:edge_apdex:overall{namespace="$namespace"}', 'none', 8, 0, description='Ingress-derived APDEX (100/500ms) excluding streaming hosts; reflects user experience.'),
+        // TODO(traefik-refactor): Verify edge APDEX series now reflect Traefik-derived recordings.
+        h.statPanel(config, 3, 'APDEX (edge)', 'mastodon:edge_apdex:overall{namespace="$namespace"}', 'none', 8, 0, description='Traefik edge APDEX (100/500ms) excluding streaming routes; reflects user experience.'),
 
         h.timeseriesPanel(config, 4, 'Latency percentiles', [
           { expr: 'mastodon:web_latency:p50_seconds{namespace="$namespace"}', legendFormat: 'p50' },
@@ -31,7 +32,7 @@ local h = import './helpers.libsonnet';
           { expr: 'mastodon:edge_apdex:overall{namespace="$namespace"}', legendFormat: 'overall' },
           { expr: 'mastodon:edge_apdex:app{namespace="$namespace",ingress!=""}', legendFormat: '{{ingress}} app' },
           { expr: 'mastodon:edge_apdex:static{namespace="$namespace",ingress!=""}', legendFormat: '{{ingress}} static' },
-        ], 'none', 12, 5, 12, 8, description='Edge APDEX by ingress/host to spot latency regressions users actually feel.'),
+        ], 'none', 12, 5, 12, 8, description='Edge APDEX by ingress to spot latency regressions users actually feel.'),
 
         h.timeseriesPanel(config, 6, 'SQL vs app latency', [
           { expr: 'mastodon:web_latency:sql_avg_seconds{namespace="$namespace"}', legendFormat: 'SQL' },

@@ -13,7 +13,7 @@
    ],
    "panels": [
       {
-         "description": "Estimated varnish/nginx cache hit ratio from edge vs app RPS.",
+         "description": "Estimated varnish/edge cache hit ratio from Traefik vs app RPS.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -63,7 +63,7 @@
          "type": "stat"
       },
       {
-         "description": "Total ingress request rate at the edge.",
+         "description": "Total Traefik service request rate at the edge.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -113,7 +113,7 @@
          "type": "stat"
       },
       {
-         "description": "Edge-served 5xx per second (ingress/varnish layer).",
+         "description": "Edge-served 5xx per second (Traefik ingress layer).",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -163,7 +163,7 @@
          "type": "stat"
       },
       {
-         "description": "Edge request rate by host; useful for host-specific issues.",
+         "description": "Edge request rate by ingress; useful for per-route issues.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -192,16 +192,16 @@
          },
          "targets": [
             {
-               "expr": "mastodon:edge_rps{namespace=\"$namespace\",host!=\"\"}",
-               "legendFormat": "{{host}}",
+               "expr": "sum by (ingress) (mastodon:edge_rps{namespace=\"$namespace\",ingress!=\"\"})",
+               "legendFormat": "{{ingress}}",
                "refId": "A"
             }
          ],
-         "title": "Requests per host",
+         "title": "Requests per ingress",
          "type": "timeseries"
       },
       {
-         "description": "Edge 5xx rate per host to pinpoint failing ingress/varnish paths.",
+         "description": "Edge 5xx rate per ingress to pinpoint failing varnish/Traefik paths.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -230,12 +230,12 @@
          },
          "targets": [
             {
-               "expr": "mastodon:edge_errors_rate{namespace=\"$namespace\",host!=\"\"}",
-               "legendFormat": "{{host}}",
+               "expr": "sum by (ingress) (mastodon:edge_errors_rate{namespace=\"$namespace\",ingress!=\"\"})",
+               "legendFormat": "{{ingress}}",
                "refId": "A"
             }
          ],
-         "title": "Edge errors per host",
+         "title": "Edge errors per ingress",
          "type": "timeseries"
       },
       {
@@ -277,7 +277,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Ingress latency percentiles per host; reflects user-facing edge timing.",
+         "description": "Traefik latency percentiles per ingress (deduped across pods); reflects user-facing edge timing.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -306,18 +306,18 @@
          },
          "targets": [
             {
-               "expr": "mastodon:edge_latency_p50{namespace=\"$namespace\",host!=\"\"}",
-               "legendFormat": "p50 {{host}}",
+               "expr": "max by (ingress) (mastodon:edge_latency_p50{namespace=\"$namespace\",ingress!=\"\"})",
+               "legendFormat": "p50 {{ingress}}",
                "refId": "A"
             },
             {
-               "expr": "mastodon:edge_latency_p90{namespace=\"$namespace\",host!=\"\"}",
-               "legendFormat": "p90 {{host}}",
+               "expr": "max by (ingress) (mastodon:edge_latency_p90{namespace=\"$namespace\",ingress!=\"\"})",
+               "legendFormat": "p90 {{ingress}}",
                "refId": "B"
             },
             {
-               "expr": "mastodon:edge_latency_p99{namespace=\"$namespace\",host!=\"\"}",
-               "legendFormat": "p99 {{host}}",
+               "expr": "max by (ingress) (mastodon:edge_latency_p99{namespace=\"$namespace\",ingress!=\"\"})",
+               "legendFormat": "p99 {{ingress}}",
                "refId": "C"
             }
          ],
@@ -325,13 +325,13 @@
          "type": "timeseries"
       },
       {
-         "description": "Ingress controller CPU by pod; saturation can hurt latency.",
+         "description": "Active Traefik connections by entrypoint/protocol (summed across pods).",
          "fieldConfig": {
             "defaults": {
                "color": {
                   "mode": "palette-classic"
                },
-               "unit": "cores"
+               "unit": "none"
             },
             "overrides": [ ]
          },
@@ -354,22 +354,22 @@
          },
          "targets": [
             {
-               "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"ingress-nginx\",pod=~\"ingress-nginx-controller.*\",container!=\"\"}[5m]))",
-               "legendFormat": "{{pod}}",
+               "expr": "sum by (entrypoint, protocol) (traefik_open_connections{entrypoint!=\"\"})",
+               "legendFormat": "{{entrypoint}} {{protocol}}",
                "refId": "A"
             }
          ],
-         "title": "Ingress controller CPU usage",
+         "title": "Traefik open connections",
          "type": "timeseries"
       },
       {
-         "description": "Ingress controller memory by pod; watch for OOM risk.",
+         "description": "Cluster-wide Traefik entrypoint request rates (helps spot ingress pressure).",
          "fieldConfig": {
             "defaults": {
                "color": {
                   "mode": "palette-classic"
                },
-               "unit": "bytes"
+               "unit": "p/s"
             },
             "overrides": [ ]
          },
@@ -392,12 +392,12 @@
          },
          "targets": [
             {
-               "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"ingress-nginx\",pod=~\"ingress-nginx-controller.*\",container!=\"\"})",
-               "legendFormat": "{{pod}}",
+               "expr": "sum by (entrypoint, protocol) (rate(traefik_entrypoint_requests_total[5m]))",
+               "legendFormat": "{{entrypoint}} {{protocol}}",
                "refId": "A"
             }
          ],
-         "title": "Ingress controller memory",
+         "title": "Traefik entrypoint RPS",
          "type": "timeseries"
       }
    ],

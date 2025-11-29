@@ -2,18 +2,19 @@
 
 ## Metrics
 
-- `nginx_ingress_controller_requests{namespace,ingress,host,status}` – edge request/response counters used for total RPS and 5xx rates.
-- `nginx_ingress_controller_request_duration_seconds_bucket{...}` – histogram buckets for request duration that power the p50/p90/p99 latency charts via `histogram_quantile`.
-- Derived recording rules live in `mastodon:edge_*` (RPS, errors, latency) to keep Grafana queries short and label-consistent.
-- **Cache hit ratio**: `mastodon:edge_cache_hit_ratio = clamp(1 - (app_rps / sum(edge_rps)), 0, 1)` approximates Varnish/Nginx cache behaviour by comparing upstream vs app-layer traffic.
+- `traefik_service_requests_total{exported_service,code,method,protocol}` – edge request/response counters; we relabel `exported_service` to `{namespace, ingress}` (e.g., `varnish-for-app`, `varnish-for-static`) for per-namespace views and error slicing.
+- `traefik_service_request_duration_seconds_bucket{...}` / `_sum` / `_count` – latency histograms powering p50/p90/p99 and APDEX derived from Traefik edge timing.
+- `traefik_entrypoint_requests_total`, `traefik_open_connections` – entrypoint-level health (websecure) for quick pressure checks.
+- Derived recording rules live in `mastodon:edge_*` (RPS, errors, latency, APDEX) to keep Grafana queries short and label-consistent.
+- **Cache hit ratio**: `mastodon:edge_cache_hit_ratio = clamp(1 - (app_rps / sum(edge_rps)), 0, 1)` approximates Varnish/Traefik cache behaviour by comparing edge vs app-layer traffic.
 
 ## Dashboard (`generated/dashboards/edge.json`)
 
 1. **Cache hit ratio / RPS stats** – quickly shows whether load is handled at the edge or passed downstream.
-2. **Requests per host** – filter by `$namespace` and inspect per-ingress traffic splits. A sudden traffic shift to `microblog.network` should be visible here.
-3. **Edge errors** – 5xx rates per host for find-and-fix; if they spike but the web 5xx panel is quiet, focus on ingress (timeouts, upstream disconnects).
-4. **Latency quantiles** – p50/p90/p99 per host from the ingress histogram buckets.
-5. **Ingress controller resources** – CPU/memory usage for the ingress-nginx controller pods inside the selected namespace.
+2. **Requests per ingress** – filter by `$namespace` and inspect per-route traffic splits (e.g., `varnish-for-app` vs `varnish-for-static`).
+3. **Edge errors** – 5xx rates per ingress for find-and-fix; if they spike but the web 5xx panel is quiet, focus on ingress/varnish issues (timeouts, upstream disconnects).
+4. **Latency quantiles** – p50/p90/p99 per ingress from the Traefik service histograms.
+5. **Traefik entrypoint health** – open connections and entrypoint RPS (cluster-wide) to spot pressure on the gateway.
 
 ## Alerting
 

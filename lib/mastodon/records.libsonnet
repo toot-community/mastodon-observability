@@ -1,4 +1,5 @@
 local cfg = import './config.libsonnet';
+local traefik = import './traefik.libsonnet';
 local fmt(str, args) = std.format(str, args);
 
 local regexFrom(items) = if std.length(items) == 0 then '.*' else '^(?:' + std.join('|', items) + ')$';
@@ -21,23 +22,31 @@ local sloWindows = ['5m', '30m', '1h', '6h', '30d'];
 
 local buildGroups(config) = (
   local h = helper(config);
+  local tf = traefik.helper(config);
   // zeroNs provides a namespace-aligned zero time series so arithmetic never drops missing series
   // (e.g., 0 errors still emit a 0 rather than disappearing).
   local zeroNs = fmt('sum by (namespace) (0 * %s)', [h.metric('ruby_http_requests_total')]);
-  // We rely on NGINX histogram buckets for APDEX because Rails/Puma only exposes summaries (no buckets),
+  // TODO(traefik-refactor): Confirm Traefik-based edge latency/APDEX calculations stay aligned with thresholds.
+  // APDEX now relies on Traefik edge latency histograms (ingress-level) because Rails/Puma only exposes summaries (no buckets),
   // which made the prior mean-based APDEX stay pegged at ~1.0. Using edge latency reflects user experience
   // and aligns with ingress-level SLOs; keep mean latency for diagnostics.
-  local edgeApdexExpr(baseSelector, window=config.ingress.latencyWindow, group='namespace, ingress') =
+  local edgeApdexExpr(kinds, window=config.ingress.latencyWindow, group='namespace, ingress') =
     local satisfiedLe = std.format('%g', config.ingress.apdex.satisfiedSeconds);
     local toleratingLe = std.format('%g', config.ingress.apdex.toleratingSeconds);
     local minRate = config.ingress.apdex.minRequestRate;
-    local bucket(le, extra='') = fmt('nginx_ingress_controller_request_duration_seconds_bucket{%s%s,le="%s"}', [baseSelector, extra, le]);
+    local bucket(le, extra='') = tf.metricForKinds(
+      'traefik_service_request_duration_seconds_bucket',
+      kinds,
+      fmt('%sle="%s"', [if extra != '' then extra + ',' else '', le])
+    );
     local base(le, extra='') =
-      fmt('sum by (%s) (label_replace(rate(%s[%s]), "namespace", "$1", "exported_namespace", "(.*)"))',
-          [group, bucket(le, extra), window]);
-    local satisfied = base(satisfiedLe, ',status!~"5.."');
-    local tolerating = base(toleratingLe, ',status!~"5.."');
-    local total = base('+Inf');
+      fmt('sum by (%s) (%s)', [
+        group,
+        tf.labelNamespaceIngress(fmt('rate(%s[%s])', [bucket(le, extra), window])),
+      ]);
+    local satisfied = base(satisfiedLe, 'protocol!="websocket",code!~"5.."');
+    local tolerating = base(toleratingLe, 'protocol!="websocket",code!~"5.."');
+    local total = base('+Inf', 'protocol!="websocket"');
     // If traffic is below minRate, drop the series (no data) instead of misleading 0/1.
     local apdex = fmt('(%s + 0.5 * clamp_min(%s - %s, 0)) / clamp_min(%s, 1e-6)', [satisfied, tolerating, satisfied, total]);
     fmt('(%s) and on (%s) (%s >= %f)', [apdex, group, total, minRate])
@@ -255,45 +264,53 @@ local buildGroups(config) = (
     {
       name: 'mastodon-edge',
       rules: (
-        // ingress-nginx exposes the target object namespace as "exported_namespace"
-        local ingressSelector(extra='') = fmt('exported_namespace=~"%s"%s', [h.nsRegex, if extra != '' then ',' + extra else '']);
-        local apdexSelector(extra='') = fmt('%s%s', [ingressSelector(), if extra != '' then ',' + extra else '']);
-        local latencySelector(extra='') = fmt('%s,host!~"%s"%s', [ingressSelector(), config.ingress.latencyHostExcludeRegex, if extra != '' then ',' + extra else '']);
-        local appIngressRegex = regexFrom(config.ingress.apdex.appIngresses);
-        local staticIngressRegex = regexFrom(config.ingress.apdex.staticIngresses);
-        local labelNamespace(expr) = fmt('sum by (namespace, ingress, host) (label_replace(%s, "namespace", "$1", "exported_namespace", "(.*)"))', [expr]);
+        // TODO(traefik-refactor): Validate Traefik service relabeling/regex for edge rules.
+        local appKinds = config.ingress.apdex.appIngresses;
+        local staticKinds = config.ingress.apdex.staticIngresses;
+        local latencyKinds = appKinds + staticKinds;
+        local sumByNsIngress(expr) = fmt('sum by (namespace, ingress) (%s)', [expr]);
+        local relabel(expr) = tf.labelNamespaceIngress(expr);
         [
           {
             record: 'mastodon:edge_rps',
-            expr: labelNamespace(fmt('sum by (exported_namespace, ingress, host) (rate(nginx_ingress_controller_requests{%s}[%s]))', [ingressSelector(), config.ingress.rpsWindow])),
+            expr: sumByNsIngress(relabel(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total'), config.ingress.rpsWindow]))),
           },
           {
             record: 'mastodon:edge_errors_rate',
-            expr: labelNamespace(fmt('sum by (exported_namespace, ingress, host) (rate(nginx_ingress_controller_requests{%s}[%s]))', [ingressSelector('status=~"5.."'), config.ingress.rpsWindow])),
+            expr: sumByNsIngress(relabel(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total', 'code=~"5.."'), config.ingress.rpsWindow]))),
           },
           {
             record: 'mastodon:edge_apdex:app',
-            expr: edgeApdexExpr(apdexSelector(fmt('ingress=~"%s"', [appIngressRegex])), config.ingress.latencyWindow, 'namespace, ingress'),
+            expr: edgeApdexExpr(appKinds, config.ingress.latencyWindow, 'namespace, ingress'),
           },
           {
             record: 'mastodon:edge_apdex:static',
-            expr: edgeApdexExpr(apdexSelector(fmt('ingress=~"%s"', [staticIngressRegex])), config.ingress.latencyWindow, 'namespace, ingress'),
+            expr: edgeApdexExpr(staticKinds, config.ingress.latencyWindow, 'namespace, ingress'),
           },
           {
             record: 'mastodon:edge_apdex:overall',
-            expr: edgeApdexExpr(apdexSelector(fmt('ingress=~"%s"', [appIngressRegex])), config.ingress.latencyWindow, 'namespace'),
+            expr: edgeApdexExpr(appKinds, config.ingress.latencyWindow, 'namespace'),
           },
           {
             record: 'mastodon:edge_latency_p50',
-            expr: labelNamespace(fmt('histogram_quantile(0.5, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%s}[%s])))', [latencySelector(), config.ingress.latencyWindow])),
+            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.5, sum by (exported_service, le) (rate(%s[%s])))', [
+              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
+              config.ingress.latencyWindow,
+            ]))),
           },
           {
             record: 'mastodon:edge_latency_p90',
-            expr: labelNamespace(fmt('histogram_quantile(0.9, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%s}[%s])))', [latencySelector(), config.ingress.latencyWindow])),
+            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.9, sum by (exported_service, le) (rate(%s[%s])))', [
+              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
+              config.ingress.latencyWindow,
+            ]))),
           },
           {
             record: 'mastodon:edge_latency_p99',
-            expr: labelNamespace(fmt('histogram_quantile(0.99, sum by (exported_namespace, ingress, host, le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%s}[%s])))', [latencySelector(), config.ingress.latencyWindow])),
+            expr: sumByNsIngress(relabel(fmt('histogram_quantile(0.99, sum by (exported_service, le) (rate(%s[%s])))', [
+              tf.metricForKinds('traefik_service_request_duration_seconds_bucket', latencyKinds, 'protocol!="websocket"'),
+              config.ingress.latencyWindow,
+            ]))),
           },
           {
             record: 'mastodon:edge_cache_hit_ratio',

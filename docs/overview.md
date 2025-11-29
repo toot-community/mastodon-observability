@@ -21,7 +21,8 @@ This repository renders a complete stack for the `mastodon-observability` namesp
 ## Metrics + validation
 
 - All metric names/labels come from the dumps in `metrics-examples/` and were cross-checked inside the `victoriametrics` namespace (`kubectl exec vmsingle-vm … wget http://localhost:8428/api/v1/query?...`) while filtering on `namespace="microblog-network"`.
-- Web traffic uses `ruby_http_requests_total`, `ruby_http_request_duration_seconds_*`, and SQL/Redis sub-metrics. Sidekiq relies on `sidekiq_queue_latency_seconds`, `sidekiq_jobs_total`, `sidekiq_stats_*`, and `ActiveRecord` pool gauges. Streaming panels use `connected_clients`, `messages_sent_total`, `nodejs_eventloop_lag_*`, and `pg_pool_*`. Edge dashboards consume `nginx_ingress_controller_*` histograms.
+- Web traffic uses `ruby_http_requests_total`, `ruby_http_request_duration_seconds_*`, and SQL/Redis sub-metrics. Sidekiq relies on `sidekiq_queue_latency_seconds`, `sidekiq_jobs_total`, `sidekiq_stats_*`, and `ActiveRecord` pool gauges. Streaming panels use `connected_clients`, `messages_sent_total`, `nodejs_eventloop_lag_*`, and `pg_pool_*`. Edge dashboards consume Traefik `traefik_service_*` histograms.
+- Web traffic uses `ruby_http_requests_total`, `ruby_http_request_duration_seconds_*`, and SQL/Redis sub-metrics. Sidekiq relies on `sidekiq_queue_latency_seconds`, `sidekiq_jobs_total`, `sidekiq_stats_*`, and `ActiveRecord` pool gauges. Streaming panels use `connected_clients`, `messages_sent_total`, `nodejs_eventloop_lag_*`, and `pg_pool_*`. Edge dashboards consume Traefik `traefik_service_*` histograms.
 
 ## SLOs + alerts at a glance
 

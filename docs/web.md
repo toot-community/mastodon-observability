@@ -3,7 +3,7 @@
 ## Key metrics
 
 - `ruby_http_requests_total{namespace,controller,action,status}` – source of request volume, error counting, and classification.
-- `ruby_http_request_duration_seconds_{sum,count}` – mean latency (diagnostic only; APDEX now derived from ingress NGINX histograms).
+- `ruby_http_request_duration_seconds_{sum,count}` – mean latency (diagnostic only; APDEX now derived from Traefik edge histograms).
 - `ruby_http_request_duration_seconds{quantile="0.5|0.9|0.99"}` – per-controller percentiles averaged across pods for dashboard plots.
 - `ruby_http_request_sql_duration_seconds_*`, `ruby_http_request_redis_duration_seconds_*`, `ruby_http_request_queue_duration_seconds_*` – SQL/cache/queue components for latency breakdowns.
 - Puma saturation: `ruby_puma_running_threads`, `ruby_puma_thread_pool_capacity`, `ruby_puma_max_threads`, `ruby_puma_request_backlog`.
@@ -19,7 +19,7 @@
   - `mastodon:web_availability:error_ratio_<window>` = `increase(bad[window])/increase(total[window])` for 5 m / 30 m / 1 h / 6 h / 30 d windows.
   - Burn rate = error ratio ÷ error budget (0.5 %). Multi-window alerts fire when both fast and slow windows are exhausted simultaneously to guard against false positives.
 - **Latency** – We compute `mastodon:web_latency:mean_seconds` and component averages from `*_sum / *_count`. P50/90/99 panels use the exporter quantiles averaged per namespace.
-- **APDEX (edge)** – Derived from `nginx_ingress_controller_request_duration_seconds_bucket` at the ingress, keyed by `{namespace, host, ingress}` and excluding streaming hosts. We treat ≤100 ms as satisfied, 100–500 ms as tolerating (0.5 weight), >500 ms or 5xx as frustrated. This reflects user-facing latency better than the former mean-based approximation from Puma summaries.
+- **APDEX (edge)** – Derived from `traefik_service_request_duration_seconds_bucket` at the edge, keyed by `{namespace, ingress}` and excluding streaming routes. We treat ≤100 ms as satisfied, 100–500 ms as tolerating (0.5 weight), >500 ms or 5xx as frustrated. This reflects user-facing latency better than the former mean-based approximation from Puma summaries.
 
 ## Alerts
 

@@ -18,7 +18,8 @@ local h = import './helpers.libsonnet';
     base {
       panels: [
         h.statPanel(config, 1, 'Availability (30d)', 'mastodon:web_availability:availability_30d{namespace="$namespace"}', 'percentunit', 0, 0, description='Long-window availability SLO attainment for user-facing routes.'),
-        h.statPanel(config, 2, 'APDEX (edge)', 'mastodon:edge_apdex:overall{namespace="$namespace"}', 'none', 4, 0, description='Ingress APDEX (100/500ms) excluding streaming; fast health snapshot.'),
+        // TODO(traefik-refactor): Validate edge APDEX and traffic panels now backed by Traefik metrics.
+        h.statPanel(config, 2, 'APDEX (edge)', 'mastodon:edge_apdex:overall{namespace="$namespace"}', 'none', 4, 0, description='Traefik edge APDEX (100/500ms) excluding streaming routes; fast health snapshot.'),
         h.statPanel(config, 3, 'Streaming clients', 'mastodon:streaming_connected_clients_total{namespace="$namespace"}', 'none', 8, 0, description='Total connected streaming clients right now.'),
 
         h.timeseriesPanel(config, 4, 'Error budget burn', [
