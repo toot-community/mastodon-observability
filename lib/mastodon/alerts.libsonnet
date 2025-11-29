@@ -74,6 +74,7 @@ local buildGroups(config) =
          },
          {
            alert: 'MastodonWebLatencyWarning',
+           // TODO(traefik-refactor): Ensure edge APDEX alert tracks Traefik-derived recording rule semantics.
            expr: fmt('%s < 0.85', [h.metric('mastodon:edge_apdex:overall')]),
            'for': '15m',
            labels: {

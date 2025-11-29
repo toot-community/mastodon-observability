@@ -113,7 +113,7 @@
          "type": "stat"
       },
       {
-         "description": "Ingress-derived APDEX (100/500ms) excluding streaming hosts; reflects user experience.",
+         "description": "Traefik edge APDEX (100/500ms) excluding streaming routes; reflects user experience.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Edge APDEX by ingress/host to spot latency regressions users actually feel.",
+         "description": "Edge APDEX by ingress to spot latency regressions users actually feel.",
          "fieldConfig": {
             "defaults": {
                "color": {

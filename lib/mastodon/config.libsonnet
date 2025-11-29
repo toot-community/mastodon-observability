@@ -15,7 +15,7 @@
       minRequestRate: 0.1,  // drop to "no data" below this rps to avoid noisy zeros on idle hosts
       appHosts: ['microblog.network', 'toot.community', 'www.microblog.network', 'www.toot.community'],
       staticHosts: ['static.microblog.network', 'static.toot.community'],
-      appIngresses: ['mastodon-web', 'mastodon-web-www-redirect'],
+      appIngresses: ['varnish-for-app', 'mastodon-web'],
       staticIngresses: ['varnish-for-static'],
     },
   },

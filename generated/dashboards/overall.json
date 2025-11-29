@@ -63,7 +63,7 @@
          "type": "stat"
       },
       {
-         "description": "Ingress APDEX (100/500ms) excluding streaming; fast health snapshot.",
+         "description": "Traefik edge APDEX (100/500ms) excluding streaming routes; fast health snapshot.",
          "fieldConfig": {
             "defaults": {
                "color": {

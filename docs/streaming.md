@@ -29,5 +29,5 @@
 
 ## Response playbook
 
-- When `MastodonStreamingNoClients` fires, verify ingress-nginx websocket routes and Redis connectivity first. If Grafana also shows Redis messages dropping to zero, restart the streaming deployment with extra logging enabled before touching ingress.
+- When `MastodonStreamingNoClients` fires, verify Traefik websocket routes and Redis connectivity first. If Grafana also shows Redis messages dropping to zero, restart the streaming deployment with extra logging enabled before touching ingress.
 - Eventloop lag alerts often correlate with Sidekiq spikes—if Sidekiq pushes too many streaming jobs, consider smoothing via queue rate limiting rather than scaling streaming pods prematurely.
