@@ -321,7 +321,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 5
+            "y": 13
          },
          "id": 6,
          "options": {
@@ -374,7 +374,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 22
          },
          "id": 7,
          "options": {
@@ -412,7 +412,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 22
          },
          "id": 8,
          "options": {
@@ -460,7 +460,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 27
+            "y": 30
          },
          "id": 9,
          "options": {
@@ -498,7 +498,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 27
+            "y": 30
          },
          "id": 10,
          "options": {
@@ -536,7 +536,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 35
+            "y": 38
          },
          "id": 11,
          "options": {
@@ -584,7 +584,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 35
+            "y": 38
          },
          "id": 12,
          "options": {
@@ -622,7 +622,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 43
+            "y": 46
          },
          "id": 13,
          "options": {
@@ -660,7 +660,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 43
+            "y": 46
          },
          "id": 14,
          "options": {
@@ -698,7 +698,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 51
+            "y": 54
          },
          "id": 15,
          "options": {
@@ -736,7 +736,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 51
+            "y": 54
          },
          "id": 16,
          "options": {
@@ -774,7 +774,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 59
+            "y": 62
          },
          "id": 17,
          "options": {
@@ -817,7 +817,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 59
+            "y": 62
          },
          "id": 18,
          "options": {
@@ -880,7 +880,7 @@
             "h": 5,
             "w": 4,
             "x": 0,
-            "y": 67
+            "y": 72
          },
          "id": 19,
          "options": {
@@ -930,7 +930,7 @@
             "h": 5,
             "w": 4,
             "x": 4,
-            "y": 67
+            "y": 72
          },
          "id": 20,
          "options": {
@@ -961,7 +961,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 72
+            "y": 78
          },
          "id": 21,
          "options": {
@@ -980,7 +980,7 @@
          "targets": [
             {
                "datasource": "VictoriaLogs",
-               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_name:~\"^mastodon-web\" and _msg:~$web_log_search",
+               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_labels.app.kubernetes.io/name:~\"mastodon-web.*\" and _msg:~$web_log_search",
                "queryType": "logs",
                "refId": "A"
             }

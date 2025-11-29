@@ -33,7 +33,7 @@ local h = import './helpers.libsonnet';
 
         h.timeseriesPanel(config, 6, 'Channels', [
           { expr: 'sum by (namespace, type) (connected_channels{namespace="$namespace",type!=""})', legendFormat: '{{type}}' },
-        ], 'none', 12, 5, 12, 8, description='Active streaming channels by type; correlates with subscriptions/load.'),
+        ], 'none', 12, 21, 12, 8, description='Active streaming channels by type; correlates with subscriptions/load.'),
 
         h.timeseriesPanel(config, 7, 'Messages sent', [
           { expr: 'mastodon:streaming_messages_sent_rate5m{namespace="$namespace",type!=""}', legendFormat: '{{type}} out' },
@@ -84,7 +84,7 @@ local h = import './helpers.libsonnet';
           id: 17,
           type: 'logs',
           title: 'Streaming logs (last 30m)',
-          gridPos: { x: 0, y: 61, w: 24, h: 16 },
+          gridPos: { x: 0, y: 62, w: 24, h: 16 },
           datasource: logs.logs(config).datasource,
           options: {
             query: { query: '', refId: 'A', expr: '', intervals: [] },
@@ -99,10 +99,7 @@ local h = import './helpers.libsonnet';
               refId: 'A',
               datasource: logs.logs(config).datasource,
               queryType: 'logs',
-              expr:
-                'kubernetes.pod_namespace:~$namespace and ' +
-                'kubernetes.pod_name:~"^mastodon-streaming" and ' +
-                '_msg:~$streaming_log_search',
+              expr: h.logExpr('mastodon-streaming.*', '$streaming_log_search'),
             },
           ],
         },

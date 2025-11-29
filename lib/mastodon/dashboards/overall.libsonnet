@@ -60,7 +60,7 @@ local h = import './helpers.libsonnet';
           id: 11,
           type: 'logs',
           title: 'Recent Mastodon logs',
-          gridPos: { x: 0, y: 35, w: 24, h: 8 },
+          gridPos: { x: 0, y: 36, w: 24, h: 8 },
           datasource: logs.logs(config).datasource,
           options: {
             query: {
@@ -80,10 +80,7 @@ local h = import './helpers.libsonnet';
               refId: 'A',
               datasource: logs.logs(config).datasource,
               queryType: 'logs',
-              expr:
-                'kubernetes.pod_namespace:~$namespace and ' +
-                'kubernetes.pod_name:~"^mastodon-(web|sidekiq.*|streaming)" and ' +
-                '_msg:~$log_search',
+              expr: h.logExpr('mastodon-(web|sidekiq.*|streaming)', '$log_search'),
             },
           ],
         },

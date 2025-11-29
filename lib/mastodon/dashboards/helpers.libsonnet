@@ -21,6 +21,10 @@ local namespaceVar(config) = {
   namespaceVariable(config):: namespaceVar(config),
   podCpuExpr(appPattern):: fmt('sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace="$namespace",pod=~"%s",container!=""}[5m]))', [appPattern]),
   podMemoryExpr(appPattern):: fmt('sum by (namespace) (container_memory_working_set_bytes{namespace="$namespace",pod=~"%s",container!=""})', [appPattern]),
+  logExpr(appPattern, searchVar):: fmt(
+    'kubernetes.pod_namespace:~$namespace and kubernetes.pod_labels.app.kubernetes.io/name:~"%s" and _msg:~%s',
+    [appPattern, searchVar]
+  ),
 
   baseDashboard(config, title, uid):: {
     title: title,

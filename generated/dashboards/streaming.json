@@ -263,7 +263,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 5
+            "y": 21
          },
          "id": 6,
          "options": {
@@ -697,7 +697,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 61
+            "y": 62
          },
          "id": 17,
          "options": {
@@ -716,7 +716,7 @@
          "targets": [
             {
                "datasource": "VictoriaLogs",
-               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_name:~\"^mastodon-streaming\" and _msg:~$streaming_log_search",
+               "expr": "kubernetes.pod_namespace:~$namespace and kubernetes.pod_labels.app.kubernetes.io/name:~\"mastodon-streaming.*\" and _msg:~$streaming_log_search",
                "queryType": "logs",
                "refId": "A"
             }
