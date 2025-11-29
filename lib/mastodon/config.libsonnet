@@ -8,13 +8,10 @@
   ingress: {
     rpsWindow: '5m',
     latencyWindow: '5m',
-    latencyHostExcludeRegex: 'streaming\\\\..*',
     apdex: {
       satisfiedSeconds: 0.1,
       toleratingSeconds: 0.5,  // approx 4T
       minRequestRate: 0.1,  // drop to "no data" below this rps to avoid noisy zeros on idle hosts
-      appHosts: ['microblog.network', 'toot.community', 'www.microblog.network', 'www.toot.community'],
-      staticHosts: ['static.microblog.network', 'static.toot.community'],
       appIngresses: ['varnish-for-app', 'mastodon-web'],
       staticIngresses: ['varnish-for-static'],
     },

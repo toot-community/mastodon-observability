@@ -50,11 +50,11 @@ local h = import './helpers.libsonnet';
         ], 's', 0, 21, 12, 8, description='Eventloop latency percentiles; rising p99 with stable p50 suggests bursts.'),
 
         h.timeseriesPanel(config, 10, 'CPU usage (total)', [
-          { expr: 'sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace="$namespace",pod=~"mastodon-streaming.*",container!=""}[5m]))', legendFormat: 'total usage' },
+          { expr: h.podCpuExpr('mastodon-streaming.*'), legendFormat: 'total usage' },
         ], 'cores', 0, 29, 12, 8, description='Total CPU for streaming pods; link with lag spikes.'),
 
         h.timeseriesPanel(config, 11, 'Memory usage (total)', [
-          { expr: 'sum by (namespace) (container_memory_working_set_bytes{namespace="$namespace",pod=~"mastodon-streaming.*",container!=""})', legendFormat: 'total usage' },
+          { expr: h.podMemoryExpr('mastodon-streaming.*'), legendFormat: 'total usage' },
         ], 'bytes', 12, 29, 12, 8, description='Total memory for streaming pods; watch for leaks.'),
 
         h.timeseriesPanel(config, 12, 'GC duration by kind', [

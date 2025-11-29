@@ -32,11 +32,11 @@ local h = import './helpers.libsonnet';
         ], 'none', 0, 21, 12, 7),
 
         h.timeseriesPanel(config, 9, 'CPU usage (total)', [
-          { expr: 'sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace="$namespace",pod=~"mastodon-sidekiq.*",container!=""}[5m]))', legendFormat: 'total usage' },
+          { expr: h.podCpuExpr('mastodon-sidekiq.*'), legendFormat: 'total usage' },
         ], 'cores', 0, 28, 12, 8),
 
         h.timeseriesPanel(config, 10, 'Memory usage (total)', [
-          { expr: 'sum by (namespace) (container_memory_working_set_bytes{namespace="$namespace",pod=~"mastodon-sidekiq.*",container!=""})', legendFormat: 'total usage' },
+          { expr: h.podMemoryExpr('mastodon-sidekiq.*'), legendFormat: 'total usage' },
         ], 'bytes', 12, 28, 12, 8),
       ],
     },

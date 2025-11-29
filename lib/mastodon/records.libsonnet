@@ -1,21 +1,18 @@
 local cfg = import './config.libsonnet';
+local helpers = import './helpers.libsonnet';
 local traefik = import './traefik.libsonnet';
 local fmt(str, args) = std.format(str, args);
 
-local regexFrom(items) = if std.length(items) == 0 then '.*' else '^(?:' + std.join('|', items) + ')$';
-
-local helper(config) = {
-  nsRegex: '^(?:' + std.join('|', config.supportedNamespaces) + ')$',
-  selector(extra=''):: fmt('namespace=~"%s"%s', [self.nsRegex, if extra != '' then ',' + extra else '']),
-  metric(metricName, extra=''):: fmt('%s{%s}', [metricName, self.selector(extra)]),
-  sumRate(metricName, window, extra=''):: fmt('sum by (namespace) (rate(%s[%s]))', [self.metric(metricName, extra), window]),
-  sumIncrease(metricName, window, extra=''):: fmt('sum by (namespace) (increase(%s[%s]))', [self.metric(metricName, extra), window]),
-  avgQuantile(metricName, quantile):: fmt('avg by (namespace) (%s)', [self.metric(metricName, fmt('quantile="%s"', [quantile]))]),
-  requestClassFilter(className):: fmt('controller=~"%s",action=~"%s"', [
-    regexFrom(config.requestClasses[className].controllers),
-    regexFrom(config.requestClasses[className].actions),
-  ]),
-};
+local helper(config) =
+  helpers.selectors(config) {
+    sumRate(metricName, window, extra=''):: fmt('sum by (namespace) (rate(%s[%s]))', [self.metric(metricName, extra), window]),
+    sumIncrease(metricName, window, extra=''):: fmt('sum by (namespace) (increase(%s[%s]))', [self.metric(metricName, extra), window]),
+    avgQuantile(metricName, quantile):: fmt('avg by (namespace) (%s)', [self.metric(metricName, fmt('quantile="%s"', [quantile]))]),
+    requestClassFilter(className):: fmt('controller=~"%s",action=~"%s"', [
+      helpers.regexFrom(config.requestClasses[className].controllers),
+      helpers.regexFrom(config.requestClasses[className].actions),
+    ]),
+  };
 
 local errorBudget(config) = 1 - config.slo.availabilityTarget;
 local sloWindows = ['5m', '30m', '1h', '6h', '30d'];

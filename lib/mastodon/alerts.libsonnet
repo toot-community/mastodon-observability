@@ -1,12 +1,11 @@
 local cfg = import './config.libsonnet';
+local helpers = import './helpers.libsonnet';
 local fmt(str, args) = std.format(str, args);
-local helper(config) = {
-  nsRegex: '^(?:' + std.join('|', config.supportedNamespaces) + ')$',
-  alertNsRegex: '^(?:' + std.join('|', config.alertNamespaces) + ')$',
-  selector(extra=''):: fmt('namespace=~"%s"%s', [self.nsRegex, if extra != '' then ',' + extra else '']),
-  alertSelector(extra=''):: fmt('namespace=~"%s"%s', [self.alertNsRegex, if extra != '' then ',' + extra else '']),
-  metric(metricName, extra=''):: fmt('%s{%s}', [metricName, self.alertSelector(extra)]),
-};
+local helper(config) =
+  helpers.selectors(config) {
+    // In alerts, metric() should use the alert namespace selector.
+    metric(metricName, extra=''):: fmt('%s{%s}', [metricName, self.alertSelector(extra)]),
+  };
 
 local buildGroups(config) =
   (local h = helper(config);

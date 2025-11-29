@@ -51,11 +51,11 @@ local h = import './helpers.libsonnet';
         ], 'p/s', 12, 13, 12, 7, description='Traffic mix split by controller/action regexes; validates classification.'),
 
         h.timeseriesPanel(config, 9, 'CPU usage (total)', [
-          { expr: 'sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace="$namespace",pod=~"mastodon-web.*",container!=""}[5m]))', legendFormat: 'total usage' },
+          { expr: h.podCpuExpr('mastodon-web.*'), legendFormat: 'total usage' },
         ], 'cores', 0, 20, 12, 8, description='Total CPU for web pods; compare to requests/limits elsewhere for headroom.'),
 
         h.timeseriesPanel(config, 10, 'Memory usage (total)', [
-          { expr: 'sum by (namespace) (container_memory_working_set_bytes{namespace="$namespace",pod=~"mastodon-web.*",container!=""})', legendFormat: 'total usage' },
+          { expr: h.podMemoryExpr('mastodon-web.*'), legendFormat: 'total usage' },
         ], 'bytes', 12, 20, 12, 8, description='Total memory for web pods; track against OOM/limits.'),
 
         h.timeseriesPanel(config, 11, 'Puma capacity', [
