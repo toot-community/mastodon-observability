@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Approximate Rails pod latency (max over pods) excluding MediaProxyController/MediaController; for SLO latency use the Traefik edge panel above.",
+         "description": "Approximate Rails pod latency (max over pods) excluding media_proxy; for SLO latency use the Traefik edge panel above.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,22 +240,70 @@
          },
          "targets": [
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "{{pod}} p50",
                "refId": "A"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "{{pod}} p90",
                "refId": "B"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "{{pod}} p99",
                "refId": "C"
             }
          ],
          "title": "Rails pod latency (approx)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Top controllers by max Rails summary quantiles (p50/p90/p99), excluding media_proxy. Diagnostic only; edge latency remains the SLO view.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 23,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"}))",
+               "legendFormat": "{{controller}} p50",
+               "refId": "A"
+            },
+            {
+               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"}))",
+               "legendFormat": "{{controller}} p90",
+               "refId": "B"
+            },
+            {
+               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"}))",
+               "legendFormat": "{{controller}} p99",
+               "refId": "C"
+            }
+         ],
+         "title": "Rails controllers latency (approx, max)",
          "type": "timeseries"
       },
       {
@@ -321,7 +369,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 13
+            "y": 22
          },
          "id": 6,
          "options": {
@@ -412,7 +460,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 22
+            "y": 30
          },
          "id": 8,
          "options": {
@@ -498,7 +546,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 30
+            "y": 38
          },
          "id": 10,
          "options": {
@@ -584,7 +632,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 38
+            "y": 46
          },
          "id": 12,
          "options": {
@@ -660,7 +708,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 46
+            "y": 54
          },
          "id": 14,
          "options": {
@@ -736,7 +784,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 54
+            "y": 62
          },
          "id": 16,
          "options": {
@@ -817,7 +865,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 62
+            "y": 70
          },
          "id": 18,
          "options": {

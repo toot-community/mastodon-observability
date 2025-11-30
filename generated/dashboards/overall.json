@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Rails summary latency (approx), excluding MediaProxyController/MediaController; edge latency panels remain the SLO source.",
+         "description": "Rails summary latency (approx), excluding media_proxy; edge latency panels remain the SLO source.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,17 +240,17 @@
          },
          "targets": [
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "p50",
                "refId": "A"
             },
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "p90",
                "refId": "B"
             },
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(MediaProxyController|MediaController)$\"})",
+               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
                "legendFormat": "p99",
                "refId": "C"
             }

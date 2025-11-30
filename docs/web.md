@@ -47,4 +47,4 @@ Each alert links to this document (`docs/web.md#alerts`) and lives in `mastodon-
 
 - Classification regexes cover controllers seen in `metrics-examples/web-metrics.txt` (home, statuses, notifications, accounts, inboxes, webfinger, etc.). Adjust them in `config.libsonnet` if new controllers appear.
 - APDEX is now ingress-based; Puma summaries remain only for mean/percentile diagnostics.
-- Rails latency panels exclude `MediaProxyController` and `MediaController` because media fetch/relay endpoints are inherently slow and noisy. These panels remain diagnostic (per-pod/namespace) while the SLO-authoritative latency view is the Traefik edge histogram panel, which includes all user traffic.
+- Rails latency panels exclude `media_proxy` because media fetch/relay endpoints are inherently slow and noisy. These panels remain diagnostic (per-pod/namespace) while the SLO-authoritative latency view is the Traefik edge histogram panel, which includes all user traffic.

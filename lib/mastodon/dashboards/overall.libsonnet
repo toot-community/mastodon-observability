@@ -28,10 +28,10 @@ local h = import './helpers.libsonnet';
         ], 'none', 0, 5, 12, 8, description='Multi-window burn rates vs web availability SLO; alert source.'),
 
         h.timeseriesPanel(config, 5, 'Web latency percentiles (Rails approx)', [
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.5",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: 'p50' },
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.9",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: 'p90' },
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(MediaProxyController|MediaController)$"})', legendFormat: 'p99' },
-        ], 's', 12, 5, 12, 8, description='Rails summary latency (approx), excluding MediaProxyController/MediaController; edge latency panels remain the SLO source.'),
+          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.5",controller!~"^(media_proxy)$"})', legendFormat: 'p50' },
+          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.9",controller!~"^(media_proxy)$"})', legendFormat: 'p90' },
+          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"})', legendFormat: 'p99' },
+        ], 's', 12, 5, 12, 8, description='Rails summary latency (approx), excluding media_proxy; edge latency panels remain the SLO source.'),
 
         h.timeseriesPanel(config, 6, 'Request mix (req/s)', [
           { expr: 'mastodon:web_requests_user:rate5m{namespace="$namespace"}', legendFormat: 'user-facing' },
