@@ -27,11 +27,11 @@ local h = import './helpers.libsonnet';
           { expr: 'mastodon:web_availability:burn_rate_30m{namespace="$namespace"}', legendFormat: '30m burn' },
         ], 'none', 0, 5, 12, 8, description='Multi-window burn rates vs web availability SLO; alert source.'),
 
-        h.timeseriesPanel(config, 5, 'Web latency percentiles (Rails approx)', [
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.5",controller!~"^(media_proxy)$"})', legendFormat: 'p50' },
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.9",controller!~"^(media_proxy)$"})', legendFormat: 'p90' },
-          { expr: 'max by (namespace) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"})', legendFormat: 'p99' },
-        ], 's', 12, 5, 12, 8, description='Rails summary latency (approx), excluding media_proxy; edge latency panels remain the SLO source.'),
+        h.timeseriesPanel(config, 5, 'Web latency percentiles (edge)', [
+          { expr: 'mastodon:edge_latency_p50{namespace="$namespace",ingress="varnish-for-app"}', legendFormat: 'p50 app ingress' },
+          { expr: 'mastodon:edge_latency_p90{namespace="$namespace",ingress="varnish-for-app"}', legendFormat: 'p90 app ingress' },
+          { expr: 'mastodon:edge_latency_p99{namespace="$namespace",ingress="varnish-for-app"}', legendFormat: 'p99 app ingress' },
+        ], 's', 12, 5, 12, 8, description='Edge latency percentiles from Traefik histograms for app ingress (SLO view).'),
 
         h.timeseriesPanel(config, 6, 'Request mix (req/s)', [
           { expr: 'mastodon:web_requests_user:rate5m{namespace="$namespace"}', legendFormat: 'user-facing' },

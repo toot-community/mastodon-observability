@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Approximate Rails pod latency (max over pods) excluding media_proxy; for SLO latency use the Traefik edge panel above.",
+         "description": "Diagnostic pod-level Rails latency. Not used for SLO. Does not represent global percentiles.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,17 +240,17 @@
          },
          "targets": [
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"})",
+               "expr": "ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"}",
                "legendFormat": "{{pod}} p50",
                "refId": "A"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"})",
+               "expr": "ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"}",
                "legendFormat": "{{pod}} p90",
                "refId": "B"
             },
             {
-               "expr": "max by (namespace, pod) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
+               "expr": "ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"}",
                "legendFormat": "{{pod}} p99",
                "refId": "C"
             }
@@ -259,7 +259,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Top controllers by max Rails summary quantiles (p50/p90/p99), excluding media_proxy. Diagnostic only; edge latency remains the SLO view.",
+         "description": "Top Rails summary quantiles per controller/pod (p50/p90/p99), excluding media_proxy. Diagnostic only; edge latency remains the SLO view.",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -288,22 +288,22 @@
          },
          "targets": [
             {
-               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"}))",
-               "legendFormat": "{{controller}} p50",
+               "expr": "topk(5, ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"})",
+               "legendFormat": "{{controller}}/{{pod}} p50",
                "refId": "A"
             },
             {
-               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"}))",
-               "legendFormat": "{{controller}} p90",
+               "expr": "topk(5, ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"})",
+               "legendFormat": "{{controller}}/{{pod}} p90",
                "refId": "B"
             },
             {
-               "expr": "topk(5, max by (namespace, controller) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"}))",
-               "legendFormat": "{{controller}} p99",
+               "expr": "topk(5, ruby_http_request_duration_seconds{namespace=\"$namespace\",pod!=\"\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
+               "legendFormat": "{{controller}}/{{pod}} p99",
                "refId": "C"
             }
          ],
-         "title": "Rails controllers latency (approx, max)",
+         "title": "Rails controllers latency (approx, top)",
          "type": "timeseries"
       },
       {

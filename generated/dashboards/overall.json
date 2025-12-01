@@ -211,7 +211,7 @@
          "type": "timeseries"
       },
       {
-         "description": "Rails summary latency (approx), excluding media_proxy; edge latency panels remain the SLO source.",
+         "description": "Edge latency percentiles from Traefik histograms for app ingress (SLO view).",
          "fieldConfig": {
             "defaults": {
                "color": {
@@ -240,22 +240,22 @@
          },
          "targets": [
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.5\",controller!~\"^(media_proxy)$\"})",
-               "legendFormat": "p50",
+               "expr": "mastodon:edge_latency_p50{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p50 app ingress",
                "refId": "A"
             },
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.9\",controller!~\"^(media_proxy)$\"})",
-               "legendFormat": "p90",
+               "expr": "mastodon:edge_latency_p90{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p90 app ingress",
                "refId": "B"
             },
             {
-               "expr": "max by (namespace) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
-               "legendFormat": "p99",
+               "expr": "mastodon:edge_latency_p99{namespace=\"$namespace\",ingress=\"varnish-for-app\"}",
+               "legendFormat": "p99 app ingress",
                "refId": "C"
             }
          ],
-         "title": "Web latency percentiles (Rails approx)",
+         "title": "Web latency percentiles (edge)",
          "type": "timeseries"
       },
       {

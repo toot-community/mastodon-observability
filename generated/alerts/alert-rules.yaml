@@ -52,7 +52,7 @@
                      "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-latency-critical.md",
                      "summary": "Web p99 latency is above 1s"
                   },
-                  "expr": "(mastodon:web_latency:p99_seconds{namespace=~\"^(?:toot-community)$\"} > 1.000) and (mastodon:web_requests_user:rate5m{namespace=~\"^(?:toot-community)$\"} > 1)",
+                  "expr": "(mastodon:edge_latency_p99{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1.000) and (mastodon:edge_rps{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1)",
                   "for": "10m",
                   "labels": {
                      "service": "mastodon-web",

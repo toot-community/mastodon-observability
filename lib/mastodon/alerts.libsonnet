@@ -55,9 +55,9 @@ local buildGroups(config) =
            alert: 'MastodonWebLatencyCritical',
            expr:
              fmt('(%s > %.3f) and (%s > 1)', [
-               h.metric('mastodon:web_latency:p99_seconds'),
+               h.metric('mastodon:edge_latency_p99', 'ingress="varnish-for-app"'),
                config.slo.latency.frustratedSeconds,
-               h.metric('mastodon:web_requests_user:rate5m'),
+               h.metric('mastodon:edge_rps', 'ingress="varnish-for-app"'),
              ]),
            'for': '10m',
            labels: {
