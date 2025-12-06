@@ -137,9 +137,11 @@ local buildGroups(config) = (
         },
         {
           record: 'mastodon:web_latency:queue_avg_seconds',
-          expr: fmt('(%s) / clamp_min(%s, 1e-6)', [
+          expr: fmt('((%s) or on (namespace) %s) / clamp_min((%s) or on (namespace) %s, 1e-6)', [
             h.sumRate('ruby_http_request_queue_duration_seconds_sum', '5m', h.requestClassFilter('user_facing')),
+            zeroNs,
             h.sumRate('ruby_http_request_queue_duration_seconds_count', '5m', h.requestClassFilter('user_facing')),
+            zeroNs,
           ]),
         },
         {
