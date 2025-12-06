@@ -246,6 +246,22 @@
             {
                "expr": "clamp_min(clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1), 0)",
                "record": "mastodon:edge_cache_hit_ratio"
+            },
+            {
+               "expr": "sum by (namespace, ingress) (label_replace(label_replace(rate(traefik_service_requests_bytes_total{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "record": "mastodon:edge_request_bytes_rate"
+            },
+            {
+               "expr": "sum by (namespace, ingress) (label_replace(label_replace(rate(traefik_service_responses_bytes_total{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "record": "mastodon:edge_response_bytes_rate"
+            },
+            {
+               "expr": "sum by (namespace, code) (label_replace(label_replace(rate(traefik_service_requests_total{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "record": "mastodon:edge_rps_by_code"
+            },
+            {
+               "expr": "sum by (namespace, method) (label_replace(label_replace(rate(traefik_service_requests_total{exported_service=~\"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"}[5m]), \"ingress\", \"$2\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"), \"namespace\", \"$1\", \"exported_service\", \"^(microblog-network|toot-community)-(varnish-for-app|varnish-for-static|mastodon-streaming|mastodon-web)-http-[0-9]+@kubernetesgateway$\"))",
+               "record": "mastodon:edge_rps_by_method"
             }
          ]
       }

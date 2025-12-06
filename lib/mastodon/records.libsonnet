@@ -311,6 +311,22 @@ local buildGroups(config) = (
             record: 'mastodon:edge_cache_hit_ratio',
             expr: 'clamp_min(clamp_max(1 - (mastodon:web_requests:rate5m / clamp_min(sum by (namespace) (mastodon:edge_rps), 1e-3)), 1), 0)',
           },
+          {
+            record: 'mastodon:edge_request_bytes_rate',
+            expr: sumByNsIngress(tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_bytes_total'), config.ingress.rpsWindow]))),
+          },
+          {
+            record: 'mastodon:edge_response_bytes_rate',
+            expr: sumByNsIngress(tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_responses_bytes_total'), config.ingress.rpsWindow]))),
+          },
+          {
+            record: 'mastodon:edge_rps_by_code',
+            expr: fmt('sum by (namespace, code) (%s)', [tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total'), config.ingress.rpsWindow]))]),
+          },
+          {
+            record: 'mastodon:edge_rps_by_method',
+            expr: fmt('sum by (namespace, method) (%s)', [tf.withNamespaceIngress(fmt('rate(%s[%s])', [tf.metric('traefik_service_requests_total'), config.ingress.rpsWindow]))]),
+          },
         ]
       ),
     },

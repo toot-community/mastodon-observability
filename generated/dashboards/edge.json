@@ -79,7 +79,7 @@
                      }
                   ]
                },
-               "unit": "p/s"
+               "unit": "reqps"
             },
             "overrides": [ ]
          },
@@ -129,7 +129,7 @@
                      }
                   ]
                },
-               "unit": "p/s"
+               "unit": "reqps"
             },
             "overrides": [ ]
          },
@@ -163,13 +163,163 @@
          "type": "stat"
       },
       {
+         "description": "Request bytes per second (incoming traffic).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "Bps"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 12,
+            "y": 0
+         },
+         "id": 4,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (mastodon:edge_request_bytes_rate{namespace=\"$namespace\"})",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Traffic In",
+         "type": "stat"
+      },
+      {
+         "description": "Response bytes per second (outgoing traffic).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "Bps"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 16,
+            "y": 0
+         },
+         "id": 5,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (mastodon:edge_response_bytes_rate{namespace=\"$namespace\"})",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Traffic Out",
+         "type": "stat"
+      },
+      {
+         "description": "Average request size in bytes.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "decimals": 3,
+               "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "decbytes"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 20,
+            "y": 0
+         },
+         "id": 6,
+         "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto",
+            "reduceOptions": {
+               "calcs": [
+                  "lastNotNull"
+               ],
+               "fields": "",
+               "values": false
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (mastodon:edge_request_bytes_rate{namespace=\"$namespace\"}) / clamp_min(sum by (namespace) (mastodon:edge_rps{namespace=\"$namespace\"}), 1)",
+               "legendFormat": "{{namespace}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Avg Request Size",
+         "type": "stat"
+      },
+      {
          "description": "Edge request rate by ingress; useful for per-route issues.",
          "fieldConfig": {
             "defaults": {
                "color": {
                   "mode": "palette-classic"
                },
-               "unit": "p/s"
+               "unit": "reqps"
             },
             "overrides": [ ]
          },
@@ -179,7 +329,7 @@
             "x": 0,
             "y": 5
          },
-         "id": 4,
+         "id": 7,
          "options": {
             "legend": {
                "displayMode": "table",
@@ -207,7 +357,7 @@
                "color": {
                   "mode": "palette-classic"
                },
-               "unit": "p/s"
+               "unit": "reqps"
             },
             "overrides": [ ]
          },
@@ -217,7 +367,7 @@
             "x": 12,
             "y": 5
          },
-         "id": 5,
+         "id": 8,
          "options": {
             "legend": {
                "displayMode": "table",
@@ -239,6 +389,87 @@
          "type": "timeseries"
       },
       {
+         "description": "Request rate breakdown by HTTP status code (2xx, 3xx, 4xx, 5xx).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "reqps"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 13
+         },
+         "id": 9,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (code) (mastodon:edge_rps_by_code{namespace=\"$namespace\"})",
+               "legendFormat": "{{code}}",
+               "refId": "A"
+            }
+         ],
+         "title": "HTTP Status Codes",
+         "type": "timeseries"
+      },
+      {
+         "description": "Bytes per second in/out at the edge layer.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "Bps"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 13
+         },
+         "id": 10,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (namespace) (mastodon:edge_request_bytes_rate{namespace=\"$namespace\"})",
+               "legendFormat": "Inbound",
+               "refId": "A"
+            },
+            {
+               "expr": "sum by (namespace) (mastodon:edge_response_bytes_rate{namespace=\"$namespace\"})",
+               "legendFormat": "Outbound",
+               "refId": "B"
+            }
+         ],
+         "title": "Bandwidth over time",
+         "type": "timeseries"
+      },
+      {
          "description": "Cache hit ratio trend; falling values mean more traffic to app.",
          "fieldConfig": {
             "defaults": {
@@ -253,9 +484,9 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 13
+            "y": 21
          },
-         "id": 6,
+         "id": 11,
          "options": {
             "legend": {
                "displayMode": "table",
@@ -291,9 +522,9 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 13
+            "y": 27
          },
-         "id": 7,
+         "id": 12,
          "options": {
             "legend": {
                "displayMode": "table",
@@ -325,6 +556,44 @@
          "type": "timeseries"
       },
       {
+         "description": "Request rate breakdown by HTTP method (GET, POST, PUT, DELETE, etc.).",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "reqps"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 21
+         },
+         "id": 13,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "sum by (method) (mastodon:edge_rps_by_method{namespace=\"$namespace\"})",
+               "legendFormat": "{{method}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Request Methods",
+         "type": "timeseries"
+      },
+      {
          "description": "Active Traefik connections by entrypoint/protocol (summed across pods).",
          "fieldConfig": {
             "defaults": {
@@ -339,9 +608,9 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 13
+            "y": 27
          },
-         "id": 8,
+         "id": 14,
          "options": {
             "legend": {
                "displayMode": "table",
@@ -369,17 +638,17 @@
                "color": {
                   "mode": "palette-classic"
                },
-               "unit": "p/s"
+               "unit": "reqps"
             },
             "overrides": [ ]
          },
          "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 21
+            "w": 24,
+            "x": 0,
+            "y": 35
          },
-         "id": 9,
+         "id": 15,
          "options": {
             "legend": {
                "displayMode": "table",
