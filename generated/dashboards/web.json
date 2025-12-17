@@ -784,7 +784,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 62
+            "y": 54
          },
          "id": 16,
          "options": {
@@ -808,6 +808,158 @@
          "type": "timeseries"
       },
       {
+         "description": "Controllers with highest p99 latency; these likely drive your tail latency spikes.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 62
+         },
+         "id": 24,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(10, ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"})",
+               "legendFormat": "{{controller}}#{{action}} ({{pod}})",
+               "refId": "A"
+            }
+         ],
+         "title": "Top controllers by p99 latency",
+         "type": "timeseries"
+      },
+      {
+         "description": "p99 latency weighted by request volume; high values indicate controllers contributing most to overall tail latency.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "none"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 62
+         },
+         "id": 25,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(10, ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"} * on (namespace, controller, action) group_left sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace=\"$namespace\"}[5m])))",
+               "legendFormat": "{{controller}}#{{action}}",
+               "refId": "A"
+            }
+         ],
+         "title": "p99 latency impact (p99 × request rate)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Gap between p99 and mean latency per controller; large gaps indicate inconsistent performance with occasional slow requests.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "s"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 70
+         },
+         "id": 26,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(10, max by (namespace, controller, action) (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"}) - (sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_sum{namespace=\"$namespace\",controller!~\"^(media_proxy)$\"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_count{namespace=\"$namespace\",controller!~\"^(media_proxy)$\"}[5m])), 1e-6)))",
+               "legendFormat": "{{controller}}#{{action}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Latency spread (p99 - mean)",
+         "type": "timeseries"
+      },
+      {
+         "description": "Traffic share of controllers with p99 > 1s; shows what percentage of your traffic goes to slow endpoints.",
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "palette-classic"
+               },
+               "unit": "percentunit"
+            },
+            "overrides": [ ]
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 70
+         },
+         "id": 27,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "showLegend": true
+            },
+            "tooltip": {
+               "mode": "multi",
+               "sort": "none"
+            }
+         },
+         "targets": [
+            {
+               "expr": "topk(10, (ruby_http_request_duration_seconds{namespace=\"$namespace\",quantile=\"0.99\",controller!~\"^(media_proxy)$\"} > 1) * on (namespace, controller, action) group_left() (sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace=\"$namespace\"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace=\"$namespace\"}[5m])), 1e-6)))",
+               "legendFormat": "{{controller}}#{{action}}",
+               "refId": "A"
+            }
+         ],
+         "title": "Slow request ratio (p99 > 1s)",
+         "type": "timeseries"
+      },
+      {
          "description": "Live vs free heap slots per pod; persistent growth hints at leaks.",
          "fieldConfig": {
             "defaults": {
@@ -822,7 +974,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 62
+            "y": 78
          },
          "id": 17,
          "options": {
@@ -865,7 +1017,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 70
+            "y": 78
          },
          "id": 18,
          "options": {
@@ -928,7 +1080,7 @@
             "h": 5,
             "w": 4,
             "x": 0,
-            "y": 72
+            "y": 86
          },
          "id": 19,
          "options": {
@@ -978,7 +1130,7 @@
             "h": 5,
             "w": 4,
             "x": 4,
-            "y": 72
+            "y": 86
          },
          "id": 20,
          "options": {
@@ -1009,7 +1161,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 78
+            "y": 91
          },
          "id": 21,
          "options": {

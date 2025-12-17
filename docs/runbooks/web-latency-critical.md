@@ -1,7 +1,7 @@
 # Runbook: MastodonWebLatencyCritical
 
 ## Summary
-User-facing p99 latency >1s for 10m with traffic present. Symptom-level: users perceive slowness.
+User-facing p90 latency >1s for 10m with traffic present. Symptom-level: users perceive slowness. Using p90 instead of p99 avoids noisy alerts from outliers while still catching systemic issues.
 
 ## Quick checks
 - Grafana: Web dashboard → Latency percentiles, SQL/Redis/Queue breakdown, APDEX, 5xx rate.  
@@ -18,5 +18,5 @@ User-facing p99 latency >1s for 10m with traffic present. Symptom-level: users p
 - For queue/ingress: review ingress timeout/keepalive, but prefer scaling web first.
 
 ## Verification
-- p99 returns <1s and APDEX recovers; backlogs/pool waiters subside.  
+- p90 returns <1s and APDEX recovers; backlogs/pool waiters subside.
 - No sustained 5xx spike accompanying the latency.

@@ -94,28 +94,46 @@ local h = import './helpers.libsonnet';
 
         h.timeseriesPanel(config, 16, 'Top controllers by avg latency', [
           { expr: 'topk(5, sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_sum{namespace="$namespace"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_count{namespace="$namespace"}[5m])), 1e-6))', legendFormat: '{{controller}}#{{action}}' },
-        ], 's', 12, 62, 12, 8, description='Slowest controllers by mean latency; target optimizations here first.'),
+        ], 's', 12, 54, 12, 8, description='Slowest controllers by mean latency; target optimizations here first.'),
 
+        // Slow request analysis section (y=62)
+        h.timeseriesPanel(config, 24, 'Top controllers by p99 latency', [
+          { expr: 'topk(10, ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"})', legendFormat: '{{controller}}#{{action}} ({{pod}})' },
+        ], 's', 0, 62, 12, 8, description='Controllers with highest p99 latency; these likely drive your tail latency spikes.'),
+
+        h.timeseriesPanel(config, 25, 'p99 latency impact (p99 × request rate)', [
+          { expr: 'topk(10, ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"} * on (namespace, controller, action) group_left sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace="$namespace"}[5m])))', legendFormat: '{{controller}}#{{action}}' },
+        ], 'none', 12, 62, 12, 8, description='p99 latency weighted by request volume; high values indicate controllers contributing most to overall tail latency.'),
+
+        h.timeseriesPanel(config, 26, 'Latency spread (p99 - mean)', [
+          { expr: 'topk(10, max by (namespace, controller, action) (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"}) - (sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_sum{namespace="$namespace",controller!~"^(media_proxy)$"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_request_duration_seconds_count{namespace="$namespace",controller!~"^(media_proxy)$"}[5m])), 1e-6)))', legendFormat: '{{controller}}#{{action}}' },
+        ], 's', 0, 70, 12, 8, description='Gap between p99 and mean latency per controller; large gaps indicate inconsistent performance with occasional slow requests.'),
+
+        h.timeseriesPanel(config, 27, 'Slow request ratio (p99 > 1s)', [
+          { expr: 'topk(10, (ruby_http_request_duration_seconds{namespace="$namespace",quantile="0.99",controller!~"^(media_proxy)$"} > 1) * on (namespace, controller, action) group_left() (sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace="$namespace"}[5m])) / clamp_min(sum by (namespace, controller, action) (rate(ruby_http_requests_total{namespace="$namespace"}[5m])), 1e-6)))', legendFormat: '{{controller}}#{{action}}' },
+        ], 'percentunit', 12, 70, 12, 8, description='Traffic share of controllers with p99 > 1s; shows what percentage of your traffic goes to slow endpoints.'),
+
+        // Ruby internals section (y=78)
         h.timeseriesPanel(config, 17, 'Ruby heap slots', [
           { expr: 'ruby_heap_live_slots{namespace="$namespace",pod!=""}', legendFormat: '{{pod}} live' },
           { expr: 'ruby_heap_free_slots{namespace="$namespace",pod!=""}', legendFormat: '{{pod}} free' },
-        ], 'none', 0, 62, 12, 8, description='Live vs free heap slots per pod; persistent growth hints at leaks.'),
+        ], 'none', 0, 78, 12, 8, description='Live vs free heap slots per pod; persistent growth hints at leaks.'),
 
         h.timeseriesPanel(config, 18, 'GC operations rate', [
           { expr: 'rate(ruby_major_gc_ops_total{namespace="$namespace"}[5m])', legendFormat: 'major/s' },
           { expr: 'rate(ruby_minor_gc_ops_total{namespace="$namespace"}[5m])', legendFormat: 'minor/s' },
           { expr: 'rate(ruby_marking_time{namespace="$namespace"}[5m])', legendFormat: 'marking time/s' },
           { expr: 'rate(ruby_sweeping_time{namespace="$namespace"}[5m])', legendFormat: 'sweeping time/s' },
-        ], 'none', 12, 70, 12, 8, description='GC activity rates; spikes can explain latency or CPU jumps.'),
+        ], 'none', 12, 78, 12, 8, description='GC activity rates; spikes can explain latency or CPU jumps.'),
 
-        h.statPanel(config, 19, 'Exporter healthy', 'min by (namespace) (ruby_collector_working{namespace="$namespace"})', 'none', 0, 72, 4, 5, description='Exporter self-check; should be 1.'),
-        h.statPanel(config, 20, 'Bad metrics seen', 'sum by (namespace) (increase(ruby_collector_bad_metrics_total{namespace="$namespace"}[1h]))', 'none', 4, 72, 4, 5, description='Bad metrics processed in last hour (summed across web pods); rising counts imply exporter issues.'),
+        h.statPanel(config, 19, 'Exporter healthy', 'min by (namespace) (ruby_collector_working{namespace="$namespace"})', 'none', 0, 86, 4, 5, description='Exporter self-check; should be 1.'),
+        h.statPanel(config, 20, 'Bad metrics seen', 'sum by (namespace) (increase(ruby_collector_bad_metrics_total{namespace="$namespace"}[1h]))', 'none', 4, 86, 4, 5, description='Bad metrics processed in last hour (summed across web pods); rising counts imply exporter issues.'),
 
         {
           id: 21,
           type: 'logs',
           title: 'Web logs (last 30m)',
-          gridPos: { x: 0, y: 78, w: 24, h: 16 },
+          gridPos: { x: 0, y: 91, w: 24, h: 16 },
           datasource: logs.logs(config).datasource,
           options: {
             query: { query: '', refId: 'A', expr: '', intervals: [] },

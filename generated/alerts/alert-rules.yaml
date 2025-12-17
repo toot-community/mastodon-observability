@@ -47,12 +47,12 @@
                {
                   "alert": "MastodonWebLatencyCritical",
                   "annotations": {
-                     "description": "User-facing request p99 latency is above 1000 ms while traffic is present in {{ $labels.namespace }}. Check Web/Overview dashboards and Web logs for errors/slow endpoints.",
+                     "description": "User-facing request p90 latency is above 1000 ms while traffic is present in {{ $labels.namespace }}. Check Web/Overview dashboards and Web logs for errors/slow endpoints.",
                      "grafana_dashboards": "web:web logs",
                      "runbook": "https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-latency-critical.md",
-                     "summary": "Web p99 latency is above 1s"
+                     "summary": "Web p90 latency is above 1s"
                   },
-                  "expr": "(mastodon:edge_latency_p99{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1.000) and (mastodon:edge_rps{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1)",
+                  "expr": "(mastodon:edge_latency_p90{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1.000) and (mastodon:edge_rps{namespace=~\"^(?:toot-community)$\",ingress=\"varnish-for-app\"} > 1)",
                   "for": "10m",
                   "labels": {
                      "service": "mastodon-web",

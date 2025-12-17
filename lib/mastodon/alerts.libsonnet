@@ -55,7 +55,7 @@ local buildGroups(config) =
            alert: 'MastodonWebLatencyCritical',
            expr:
              fmt('(%s > %.3f) and (%s > 1)', [
-               h.metric('mastodon:edge_latency_p99', 'ingress="varnish-for-app"'),
+               h.metric('mastodon:edge_latency_p90', 'ingress="varnish-for-app"'),
                config.slo.latency.frustratedSeconds,
                h.metric('mastodon:edge_rps', 'ingress="varnish-for-app"'),
              ]),
@@ -65,8 +65,8 @@ local buildGroups(config) =
              service: 'mastodon-web',
            },
            annotations: {
-             summary: 'Web p99 latency is above 1s',
-             description: fmt('User-facing request p99 latency is above %.0f ms while traffic is present in {{ $labels.namespace }}. Check Web/Overview dashboards and Web logs for errors/slow endpoints.', [config.slo.latency.frustratedSeconds * 1000]),
+             summary: 'Web p90 latency is above 1s',
+             description: fmt('User-facing request p90 latency is above %.0f ms while traffic is present in {{ $labels.namespace }}. Check Web/Overview dashboards and Web logs for errors/slow endpoints.', [config.slo.latency.frustratedSeconds * 1000]),
              runbook: 'https://github.com/toot-community/mastodon-observability/blob/main/docs/runbooks/web-latency-critical.md',
              grafana_dashboards: 'web:web logs',
            },
